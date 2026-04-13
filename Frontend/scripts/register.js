@@ -4,6 +4,7 @@ const email_input = document.getElementById('email')
 const password_input = document.getElementById('password')
 const confirm_password_input = document.getElementById('password-verification')
 const date_input = document.getElementById('date')
+// hier de error id krijgen
 
 form.addEventListener('submit', (e) => {
     // e.preventDefault() 
@@ -20,7 +21,10 @@ form.addEventListener('submit', (e) => {
 
 
         if (errors.length > 0 ) {
+            // als er errors zijn, stopt de proces
             e.preventDefault() 
+            // error id .innerText = errors.join(". ")
+            
         }
 })
 
