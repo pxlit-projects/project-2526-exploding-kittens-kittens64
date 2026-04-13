@@ -57,7 +57,7 @@
   }
 
   .form-field {
-    margin-bottom: 1rem;
+    margin-bottom: 2rem;
   }
 
    label {
@@ -67,6 +67,8 @@
     text-transform: uppercase;
     letter-spacing: 2px;
     margin-bottom: 4px;
+    display: block;
+    margin-top: 0.5rem;
   }
 
   input {
