@@ -5,40 +5,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register</title>
     <link rel="stylesheet" href="css/register.css">
-    <link rel="scripts" href="scripts/register.js">
+    <script src="scripts/register.js" defer></script>
 </head>
 <body>
-   
     <div class="register-container">
-            <form action="" method="post" id="register-form">
+    <form action="" method="post" id="register-form">
+        <div class="form-field">
+            <h2 class="form-title">Registration</h2>
+            <p class="form-subtitle"> (If you dare) </p>
 
-                <div class="form-field">
+            <label for="email">Where do we send the threats? (EMAIL)</label>
+            <input type="email" name="email" id="email" placeholder="Vul je e-mailadres in" required>
+            
+            <label for="username">Your cat shelter nickname (USERNAME)</label>
+            <input type="text" name="username" id="username" placeholder="Vul je Gebruikersnaam in" required>
 
-                <h2 class="form-title">Registration</h2>
-                <p class="form-subtitle"> (If you dare) </p>
+            <label for="password">Secret nuclear launch code (PASSWORD)</label>
+            <input type="password" name="password" id="password" placeholder="Vul je Wachtwoord in" minlength="6" required>
 
-                <label for="email">Where do we send the threats? (EMAIL)</label>
-                <input type="email" name="email" id="" placeholder="Vul je e-mailadres in" 
-                pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"  required
-                >
-                
-                <label for="username">Your cat shelter nickname (USERNAME)</label>
-                <input type="text" name="username" id="username" placeholder="Vul je Gebruikersnaam in"  required>
+            <label for="password-verification"> Confirm code (CONFIRM)</label>
+            <input type="password" name="password-verification" id="password-verification" placeholder="Bevestig je wachtwoord" required>
+            
+            <label for="date">How long have you survived? (BIRTHDAY)</label>
+            <input type="date" name="date" id="date" required >
 
-                <label for="password">Secret nuclear launch code (PASSWORD)</label>
-                <input type="password" name="password" id="password"  placeholder="Vul je Wachtwoord in" minlength="6"  required>
-
-                <label for="password-verification"> Confirm code (CONFIRM)</label>
-                <input type="password" name="password-verification" id="password-verification" placeholder="Vul je Wachtwoord in" required>
-                <span id="password-error" class="errors"> Wachtwoorden komen niet overeen </span>
-
-                <label for="date">How long have you survived? (BIRTHDAY)</label>
-                <input type="date" name="date" id="date" required >
-                
-                <p class="error"></p> <button type="submit"> SEND </button>
-                </div>
-            </form>
-    </div>
-    </div>
+            <p id="error-message" style="color: red; font-weight: bold;"></p>
+            
+            <button type="submit"> SEND </button>
+        </div>
+    </form>
+</div>
 </body>
 </html>
