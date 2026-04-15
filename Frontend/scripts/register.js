@@ -48,7 +48,7 @@ form.addEventListener('submit', async (e) => {
         })
 
         if (response.ok) {
-            window.location.href = `login.html?email=${encodeURIComponent(email_input.value)}`
+            window.location.href = `index.html?email=${encodeURIComponent(email_input.value)}`
         } else {
             const data = await response.json()
             error_display.innerText = data.message || "Registratie mislukt. Probeer opnieuw!"
