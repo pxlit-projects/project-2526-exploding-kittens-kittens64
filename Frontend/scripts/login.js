@@ -1,5 +1,13 @@
 const form = document.getElementById('login-form')
 const url = "https://localhost:5051/api/Authentication/token"
+
+// extract email from url
+const urlParams = new URLSearchParams(window.location.search);
+const email = urlParams.get("email");
+
+// paste email into input field
+document.getElementById('email').value = email;
+
 let errorDisplay = document.getElementById('error-message')
 
 function showError(message) {
