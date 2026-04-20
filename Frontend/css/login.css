@@ -110,3 +110,7 @@ a {
     color: black;
     text-align: center;
 }
+
+footer a {
+  margin-top: 500px;
+}
