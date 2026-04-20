@@ -102,8 +102,11 @@
     box-shadow: 0 0 0 #2a1a00;
   }
 
-  a {
-    font-size: 2rem;
+a {
+    display: block;
+    margin-top: 1.25rem;
+    font-size: 1.25rem;
     font-style: italic;
-    color:black;
-  }
+    color: black;
+    text-align: center;
+}
