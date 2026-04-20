@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>lobby</title>
+</head>
+
+<body>
+    <main>
+        <div class="lobby-container">
+            <div class="search-criteria">
+
+                <label for="game-type">Game Type</label>
+                <!-- <input type="radio" id="def-game" value="default-game"><br> -->
+                <select name="game-type" id="game-type">
+                    <option value="default-game">Default Game</option>
+                </select> <br>
+                <label for="total-players">Total Players</label>
+                <input type="range" min="2" max="5" value="3" class="slider" id="total-players">
+
+            </div>
+            <button id="search"> Search Room</button>
+            <button id="create-room">Create Room</button>
+
+            
+            <div id="table-list">
+                <!-- dit moet je met behulp van js toevoegen -->
+                <!-- <div class="table-card">
+                    <h3>Table #1</h3>
+                    <p>Players: 3/5</p>
+                    <button>Join</button>
+                </div> -->
+            </div>
+        </div>
+    </main>
+</body>
+
+</html>
