@@ -28,7 +28,7 @@ form.addEventListener('submit', async (e) => {
     console.log(password);
 
     if (!email || !password) {
-        showError("Vul alle velden in.")
+        showError("Fill in all fields.")
         return
     }
 
