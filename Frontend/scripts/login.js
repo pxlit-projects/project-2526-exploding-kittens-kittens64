@@ -49,9 +49,9 @@ form.addEventListener('submit', async (e) => {
         if (response.ok) {
             window.location.href = `lobby.html`
         } else {
-            showError("Foutief email of wachtwoord")
+            showError("Wrong email or password")
         }
     } catch (err) {
-        showError("Kan geen verbinding maken met de server.")
+        showError("Cannot connect to the server.")
     }
 })
