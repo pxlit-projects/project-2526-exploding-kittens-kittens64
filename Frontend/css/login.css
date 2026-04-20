@@ -110,26 +110,3 @@ a {
     color: black;
     text-align: center;
 }
-
-footer {
-  text-align: center;
-  margin-top: 2rem;
-  padding-bottom: 1.5rem;
-}
-
-footer a {
-  display: inline-block;
-  font-family: 'Special Elite', serif;
-  font-size: 13px;
-  color: #653d00;
-  text-decoration: none;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  border-bottom: 1px dashed #7a5a2a;
-  padding-bottom: 2px;
-}
-
-footer a:hover {
-  color: #c0392b;
-  border-bottom-color: #c0392b;
-}
