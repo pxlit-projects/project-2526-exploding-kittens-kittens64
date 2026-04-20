@@ -61,36 +61,36 @@ form.addEventListener('submit', async (e) => {
 function getRegistrationFormErrors(username, email, password, confirmPassword, date) {
     let errors = []
 
-    if (!username) {
-        errors.push("Gebruikersnaam is verplicht")
-        username_input.parentElement.classList.add('error')
-    }
+   if (!username) {
+    errors.push("Username is required")
+    username_input.parentElement.classList.add('error')
+}
 
-    if (!email) {
-        errors.push("E-mail is verplicht")
-        email_input.parentElement.classList.add('error')
-    }
+if (!email) {
+    errors.push("Email is required")
+    email_input.parentElement.classList.add('error')
+}
 
-    if (password.length < 6) {
-        errors.push("Wachtwoord moet minimaal 6 tekens bevatten")
-        password_input.parentElement.classList.add('error')
-    }
+if (password.length < 6) {
+    errors.push("Password must be at least 6 characters")
+    password_input.parentElement.classList.add('error')
+}
 
-    if (password !== confirmPassword) {
-        errors.push("Wachtwoorden komen niet overeen")
-        confirm_password_input.parentElement.classList.add('error')
-    }
+if (password !== confirmPassword) {
+    errors.push("Passwords do not match")
+    confirm_password_input.parentElement.classList.add('error')
+}
 
-    if (!date) {
-    errors.push("Geboortedatum is verplicht")
+if (!date) {
+    errors.push("Date of birth is required")
     date_input.parentElement.classList.add('error')
-    }
-    else {
+}
+else {
     const today = new Date()
     const birthDate = new Date(date)
 
     if (birthDate > today) {
-        errors.push("Geboortedatum mag niet in de toekomst liggen")
+        errors.push("Date of birth cannot be in the future")
         date_input.parentElement.classList.add('error')
     }
 }
