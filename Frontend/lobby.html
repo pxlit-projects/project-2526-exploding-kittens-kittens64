@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lobby</title>
+    <link rel="stylesheet" href="css/lobby.css">
+</head>
+<body>
+    <main>
+        <div class="lobby-container">
+            <h1 class="lobby-title">Find a Table</h1>
+            <p class="lobby-subtitle">Choose a game type and create or join a table</p>
+
+            <p class="section-heading">Available Tables</p>
+            <div id="table-list">
+                <!-- Populated by JS -->
+            </div>
+
+            <div class="waiting-banner" id="waiting-banner">
+                <p class="waiting-title">You're seated — waiting for players<span class="dots"></span></p>
+                <div class="waiting-seats" id="waiting-seats"></div>
+                <p class="waiting-sub" id="waiting-sub">1 / 3 players joined</p>
+            </div>
+
+            <hr class="divider">
+
+            <div class="controls">
+                <div class="control-row">
+                    <div class="control-field">
+                        <label for="game-type">Game Type</label>
+                        <select name="game-type" id="game-type">
+                            <option value="default-game">Default Game</option>
+                        </select>
+                    </div>
+                    <div class="control-field">
+                        <label for="total-players">Players at table: <span id="player-count-label">3</span></label>
+                        <div class="slider-row">
+                            <span>2</span>
+                            <input type="range" min="2" max="5" value="3" id="total-players">
+                            <span>5</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="buttonTable-row">
+                    <button class="buttonTable-primary" id="search">Search tables</button>
+                    <button class="buttonTable-secondary" id="create-table">Create table</button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+    <script src="scripts/lobby.js"></script>
+</body>
+</html>
