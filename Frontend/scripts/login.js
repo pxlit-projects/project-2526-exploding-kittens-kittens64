@@ -11,12 +11,8 @@ document.getElementById('email').value = email;
 let errorDisplay = document.getElementById('error-message')
 
 function showError(message) {
-    while (errorDisplay.firstChild) {
-        errorDisplay.removeChild(errorDisplay.firstChild)
-    }
-
-    let error = document.createTextNode(message)
-    errorDisplay.appendChild(error)
+    errorDisplay.textContent = message
+    errorDisplay.style.display = 'block'
 }
 
 form.addEventListener('submit', async (e) => {
@@ -28,7 +24,7 @@ form.addEventListener('submit', async (e) => {
     console.log(password);
 
     if (!email || !password) {
-        showError("Vul alle velden in.")
+        showError("Fill in all fields.")
         return
     }
 

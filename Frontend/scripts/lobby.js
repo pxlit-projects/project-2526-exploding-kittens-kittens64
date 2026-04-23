@@ -1,3 +1,6 @@
+LOBBY JS 
+
+
 const API_URL = 'https://localhost:5051/api/Lobby'
 
 
@@ -133,7 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 // ============================================================
-// PERSON 4 — Name: ___________  Name: ___________ 
+// PERSON 4 — Name: ___________  
 // 
 // User story 2 + 5
 //
