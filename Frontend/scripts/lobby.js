@@ -132,14 +132,6 @@ function renderTables(tables) {
         const actions = document.createElement('div')
         actions.classList.add('table-actions')
 
-        
-        const passwordTable = document.createElement('input')
-        passwordTable.classList.add('passwordTable-input')
-        passwordTable.type = 'password'
-        passwordTable.placeholder = 'Password'
-        actions.appendChild(passwordTable)
-        
-
         const buttonTable = document.createElement('button')
         buttonTable.classList.add('buttonTable-join')
         buttonTable.textContent = isFull ? 'Full' : 'Join'
@@ -244,7 +236,7 @@ async function joinTable(tableId, maxPlayers) {
 }
 
 function showWaitingBanner(playerName, currentPlayers, maxPlayers, tableId) {
-    waiting_banner.style.display = 'block'
+    waiting_message.style.display = 'block'
     waiting_sub.textContent = `${currentPlayers} / ${maxPlayers} spelers aanwezig`
 
     waiting_seats.innerHTML = ''
