@@ -238,7 +238,7 @@ async function joinTable(tableId, maxPlayers) {
 }
 
 function showWaitingBanner(playerName, currentPlayers, maxPlayers, tableId) {
-    waiting_banner.style.display = 'block'
+    waiting_message.style.display = 'block'
     waiting_sub.textContent = `${currentPlayers} / ${maxPlayers} spelers aanwezig`
 
     waiting_seats.innerHTML = ''
