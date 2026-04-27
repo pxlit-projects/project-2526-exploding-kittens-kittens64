@@ -1,10 +1,10 @@
-LOBBY JS 
+
 
 
 const API_URL = 'https://localhost:5051/api/Lobby'
 
 
-// PERSON 1 — Name: ___________
+// PERSON 1 — Name: Damian Dabrowski
 //
 // User story 1 + 2 + 5 (gedeeltelijk)
 //
@@ -153,3 +153,5 @@ document.addEventListener('DOMContentLoaded', () => {
 //   → als laatste speler → tafel wordt verwijderd, terug naar lobby
 //   → als niet laatste → verberg banner, toon tafellijst opnieuw
 // ============================================================
+
+
