@@ -11,7 +11,7 @@ const API_URL = 'https://localhost:5051/api/Lobby'
 // - Declareer alle constanten (API_URL, DOM elementen)
 // - Slider event listener → update player count label
 // - DOMContentLoaded → start de pagina op
-// - Verifieer of speler ingelogd is via JWT token
+// - Controleer of speler ingelogd is via JWT token
 //   → niet ingelogd = doorsturen naar login pagina
 // - fetchTables() → haal tafels op van de backend
 // - Auto-refresh van de tafellijst (setInterval)
@@ -78,11 +78,7 @@ function renderTables(tables) {
         actions.classList.add('table-actions')
 
         
-        const passwordTable = document.createElement('input')
-        passwordTable.classList.add('passwordTable-input')
-        passwordTable.type = 'password'
-        passwordTable.placeholder = 'Password'
-        actions.appendChild(passwordTable)
+        
         
 
         const buttonTable = document.createElement('button')
