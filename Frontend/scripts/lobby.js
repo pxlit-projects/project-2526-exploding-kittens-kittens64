@@ -1,3 +1,14 @@
+//  Andrii Tymoshenko
+// check that u are logged in
+const token = localStorage.getItem('token')
+console.log("u are logged in");
+
+if (!token) {
+    window.location.href = 'index.html'
+}
+
+
+
 // ============================================================
 // PERSON 1 — Name: Damian Dabrowski
 //
