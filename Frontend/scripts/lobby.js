@@ -277,7 +277,7 @@ async function leaveTable(tableId) {
             waiting_banner.style.display = 'none'
             fetchTables()
         } else {
-            showError('Kon tafel niet verlaten.')
+            showError('Kon de tafel niet verlaten.')
         }
     } catch (err) {
         showError('Serverfout. Probeer opnieuw!')
@@ -287,3 +287,4 @@ async function leaveTable(tableId) {
     waiting_banner.style.display = 'none'
     renderTables(dummyTables)
 }
+
