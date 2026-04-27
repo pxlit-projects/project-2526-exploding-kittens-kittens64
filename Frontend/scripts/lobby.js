@@ -1,3 +1,14 @@
+//  Andrii Tymoshenko
+// check that u are logged in
+const token = localStorage.getItem('token')
+console.log("u are logged in");
+
+if (!token) {
+    window.location.href = 'index.html'
+}
+
+
+
 // ============================================================
 // PERSON 1 — Name: Damian Dabrowski
 //
@@ -96,22 +107,48 @@ function renderTables(tables) {
     tables.forEach(table => {
         const isFull = table.playerCount >= table.maxPlayers
         const box = document.createElement('div')
-        box.classList.add('table-card')
-        box.innerHTML = `
-            <div class="table-top">
-                <span class="table-name">${table.name} — ${table.type}</span>
-            </div>
-            <div class="table-bottom">
-                <span class="table-info">${table.playerCount} / ${table.maxPlayers} players</span>
-                <div class="table-actions">
-                    <button class="buttonTable-join" ${isFull ? 'disabled' : ''}>
-                        ${isFull ? 'Full' : 'Join'}
-                    </button>
-                </div>
-            </div>
-        `
-        // attach event listener on the button after innerHTML is set
-        box.querySelector('.buttonTable-join').addEventListener('click', () => joinTable(table.id, table.maxPlayers))
+        box.classList.add('table-box')
+
+        // top row
+        const top = document.createElement('div')
+        top.classList.add('table-top')
+
+        const name = document.createElement('span')
+        name.classList.add('table-name')
+        name.textContent = `${table.name} — ${table.type}`
+
+       
+
+        top.append(name)
+
+        // bottom row
+        const bottom = document.createElement('div')
+        bottom.classList.add('table-bottom')
+
+        const info = document.createElement('span')
+        info.classList.add('table-info')
+        info.textContent = `${table.playerCount} / ${table.maxPlayers} players`
+
+        const actions = document.createElement('div')
+        actions.classList.add('table-actions')
+
+        
+        const passwordTable = document.createElement('input')
+        passwordTable.classList.add('passwordTable-input')
+        passwordTable.type = 'password'
+        passwordTable.placeholder = 'Password'
+        actions.appendChild(passwordTable)
+        
+
+        const buttonTable = document.createElement('button')
+        buttonTable.classList.add('buttonTable-join')
+        buttonTable.textContent = isFull ? 'Full' : 'Join'
+        buttonTable.disabled = isFull
+        buttonTable.addEventListener('click', () => joinTable(table.id))
+        actions.appendChild(buttonTable)
+
+        bottom.append(info, actions)
+        box.append(top, bottom)
         table_list.appendChild(box)
     })
 }
