@@ -92,10 +92,6 @@ function renderTables(tables) {
 }
 
 
-document.addEventListener('DOMContentLoaded', () => {
-    renderTables(dummyTables)})
-
-
 
 function getUserFromToken() {
     const token = localStorage.getItem('token')
