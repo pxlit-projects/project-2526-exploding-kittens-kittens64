@@ -78,12 +78,6 @@ function renderTables(tables) {
         actions.classList.add('table-actions')
 
         
-        const passwordTable = document.createElement('input')
-        passwordTable.classList.add('passwordTable-input')
-        passwordTable.type = 'password'
-        passwordTable.placeholder = 'Password'
-        actions.appendChild(passwordTable)
-        
 
         const buttonTable = document.createElement('button')
         buttonTable.classList.add('buttonTable-join')
