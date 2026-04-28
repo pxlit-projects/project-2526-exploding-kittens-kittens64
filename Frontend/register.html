@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register</title>
+    <link rel="stylesheet" href="css/register.css">
+    <script src="scripts/register.js" defer></script>
+</head>
+<body>
+    <div class="register-container">
+    <form action="" method="post" id="register-form">
+        <div class="form-field">
+            <h2 class="form-title">Registration</h2>
+            <p class="form-subtitle"> (If you dare) </p>
+
+            <label for="email">Where do we send the threats? (EMAIL)</label>
+            <input type="email" name="email" id="email" placeholder="Enter your email address" required>
+
+            <label for="username">Your cat shelter nickname (USERNAME)</label>
+            <input type="text" name="username" id="username" placeholder="Enter your username" required>
+
+            <label for="password">Secret nuclear launch code (PASSWORD)</label>
+            <input type="password" name="password" id="password" placeholder="Enter your password" minlength="6" required>
+
+            <label for="password-verification">Confirm code (CONFIRM)</label>
+            <input type="password" name="password-verification" id="password-verification" placeholder="Confirm your password" required>
+
+            <label for="date">How long have you survived? (BIRTHDAY)</label>
+            <input type="date" name="date" id="date" required>
+
+            <p id="error-message" style="color: red; font-weight: bold;"></p>
+            
+            <button type="submit"> SEND </button>
+        </div>
+    </form>
+</div>
+</body>
+</html>

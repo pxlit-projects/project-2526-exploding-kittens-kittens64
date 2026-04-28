@@ -4,7 +4,7 @@ using ExplodingKittens.Core.PlayerAggregate.Contracts;
 namespace ExplodingKittens.Core.PlayerAggregate;
 
 /// <inheritdoc cref="IPlayer"/>
-internal class PlayerBase : IPlayer
+internal class PlayerBase :IPlayer
 {
     private Guid _id;
     private string _name;
