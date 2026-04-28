@@ -20,7 +20,7 @@ if (!token) {
 // - showError() / clearError() → globale foutmelding
 // ============================================================
 
-const API_URL = 'https://localhost:5051/api/Lobby'
+const API_URL = 'https://localhost:5051/api/'
 
 // De tafel-lay-out
 const search_button = document.getElementById('search')
@@ -179,16 +179,21 @@ search_button.addEventListener('click', () => {
 
 create_table_button.addEventListener('click', async () => {
     clearError()
-    const user       = getUserFromToken()
+    const user = getUserFromToken()
+    const tableName = user?.username || 'Speler'
     const maxPlayers = parseInt(total_players_value.value)
-    const gameType   = document.getElementById('game-type').value
+    const gameType = document.getElementById('game-type').value
+
 
   
     try {
-        const response = await fetch(`${API_URL}/Tables/create`, {
+        const response = await fetch(`${API_URL}/Tables`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ maxPlayers, gameType })
+            headers: { 'Content-Type': 'application/json', 
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify({
+                 numberOfPlayers:maxPlayers, numberOfArtificialPlayers:0 })
         })
         if (response.ok) {
             const data = await response.json()
@@ -201,7 +206,6 @@ create_table_button.addEventListener('click', async () => {
     }
 
     
-    showWaitingBanner(user?.username || 'Speler', 1, maxPlayers, null)
 })
 
 
