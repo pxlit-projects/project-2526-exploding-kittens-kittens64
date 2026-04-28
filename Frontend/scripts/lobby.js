@@ -198,10 +198,10 @@ create_table_button.addEventListener('click', async () => {
             const data = await response.json()
             showTableWaiting(user?.username || 'Speler', 1, maxPlayers, data.tableId)
         } else {
-            showError('Can not join a Table')
+            showError('Kon tafel niet aanmaken.')
         }
     } catch (err) {
-        showError('Servererror. try again')
+        showError('Serverfout. Probeer opnieuw!')
     }
 
     
