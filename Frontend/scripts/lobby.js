@@ -132,8 +132,6 @@ function renderTables(tables) {
         const actions = document.createElement('div')
         actions.classList.add('table-actions')
 
-
-
         const buttonTable = document.createElement('button')
         buttonTable.classList.add('buttonTable-join')
         buttonTable.textContent = isFull ? 'Full' : 'Join'
@@ -283,7 +281,7 @@ async function leaveTable(tableId) {
             waiting_banner.style.display = 'none'
             fetchTables()
         } else {
-            showError('Kon tafel niet verlaten.')
+            showError('Kon de tafel niet verlaten.')
         }
     } catch (err) {
         showError('Serverfout. Probeer opnieuw!')
@@ -293,3 +291,4 @@ async function leaveTable(tableId) {
     waiting_banner.style.display = 'none'
     renderTables(dummyTables)
 }
+
