@@ -26,7 +26,10 @@ internal class TableManager : ITableManager
 
     public ITable CreateTable(User user, ITablePreferences preferences)
     {
+        
         ITable table = _tableFactory.CreateNewForUser(user, preferences);
+        _tableRepository.Add(table);
+        return table;
     }
 
     public ITable JoinTable(Guid tableId, User user)
