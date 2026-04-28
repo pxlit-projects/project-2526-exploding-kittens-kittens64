@@ -13,8 +13,8 @@ internal class TableFactory : ITableFactory
 
     public ITable CreateNewForUser(User user, ITablePreferences preferences)
     {
-        Guid id = Guid.NewGuid();
-        Table table = new Table(id, preferences);
+        Guid tableId = Guid.NewGuid();
+        Table table = new Table(tableId, preferences);
         table.Join(user);
         return table;
     }
