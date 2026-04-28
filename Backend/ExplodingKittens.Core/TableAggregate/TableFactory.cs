@@ -13,6 +13,9 @@ internal class TableFactory : ITableFactory
 
     public ITable CreateNewForUser(User user, ITablePreferences preferences)
     {
-        throw new NotImplementedException();
+        Guid id = Guid.NewGuid();
+        Table table = new Table(id, preferences);
+        table.Join(user);
+        return table;
     }
 }
