@@ -19,7 +19,7 @@ internal class Table : ITable
 
     private readonly List<IPlayer> _seatedPlayers = new List<IPlayer>();
 
-      
+
     internal Table(Guid id, ITablePreferences preferences)
     {
         Id = id;
@@ -38,8 +38,8 @@ internal class Table : ITable
         {
             throw new InvalidOperationException("Speler zit al in de Table");
         }
-      
-      _seatedPlayers.Add(new HumanPlayer(user.Id, user.UserName, user.BirthDate));
+
+        _seatedPlayers.Add(new HumanPlayer(user.Id, user.UserName, user.BirthDate));
     }
 
     public void Leave(Guid userId)
@@ -53,11 +53,11 @@ internal class Table : ITable
 
     }
 
-    
+
     public void LetArtificialPlayersJoin(IGamePlayStrategy gamePlayStrategy)
     {
         throw new NotImplementedException(); // EXTRA 
-    } 
+    }
 }
 
 
