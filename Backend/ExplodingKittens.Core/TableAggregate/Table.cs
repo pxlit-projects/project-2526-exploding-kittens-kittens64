@@ -2,6 +2,8 @@
 using ExplodingKittens.Core.PlayerAggregate.Contracts;
 using ExplodingKittens.Core.TableAggregate.Contracts;
 using ExplodingKittens.Core.UserAggregate;
+using System.Numerics;
+using System.Security.Cryptography.X509Certificates;
 
 namespace ExplodingKittens.Core.TableAggregate;
 
@@ -17,23 +19,13 @@ internal class Table : ITable
 
     private readonly List<IPlayer> _seatedPlayers = new List<IPlayer>();
 
-      
+
     internal Table(Guid id, ITablePreferences preferences)
     {
         Id = id;
         Preferences = preferences;
         GameId = Guid.Empty;
     }
-
-    public Guid Id => _id;
-
-    public ITablePreferences Preferences => _preferences;
-
-    public IReadOnlyList<IPlayer> SeatedPlayers => throw new NotImplementedException();
-
-    public bool HasAvailableSeat => throw new NotImplementedException();
-
-    public Guid GameId { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
     public void Join(User user)
     {
@@ -46,8 +38,8 @@ internal class Table : ITable
         {
             throw new InvalidOperationException("Speler zit al in de Table");
         }
-      
-      _seatedPlayers.Add(new HumanPlayer(user.Id, user.UserName, user.BirthDate));
+
+        _seatedPlayers.Add(new HumanPlayer(user.Id, user.UserName, user.BirthDate));
     }
 
     public void Leave(Guid userId)
@@ -61,11 +53,11 @@ internal class Table : ITable
 
     }
 
-    
+
     public void LetArtificialPlayersJoin(IGamePlayStrategy gamePlayStrategy)
     {
         throw new NotImplementedException(); // EXTRA 
-    } 
+    }
 }
 
 
