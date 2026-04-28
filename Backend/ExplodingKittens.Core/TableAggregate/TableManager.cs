@@ -1,6 +1,7 @@
 ﻿using ExplodingKittens.Core.GameAggregate.Contracts;
 using ExplodingKittens.Core.TableAggregate.Contracts;
 using ExplodingKittens.Core.UserAggregate;
+using System.Reflection.Emit;
 
 namespace ExplodingKittens.Core.TableAggregate;
 
@@ -34,12 +35,15 @@ internal class TableManager : ITableManager
 
     public ITable JoinTable(Guid tableId, User user)
     {
-        throw new NotImplementedException();
+       ITable currentTable = _tableRepository.Get(tableId);
+        currentTable.Join(user);
+        return currentTable;
     }
 
     public void LeaveTable(Guid tableId, User user)
     {
-        throw new NotImplementedException();
+        ITable currentTable = _tableRepository.Get(tableId);
+        currentTable.Leave(user.Id);
     }
 
     public IGame StartGameForTable(Guid tableId)
