@@ -2,6 +2,7 @@
 using ExplodingKittens.Core.PlayerAggregate.Contracts;
 using ExplodingKittens.Core.TableAggregate.Contracts;
 using ExplodingKittens.Core.UserAggregate;
+using Microsoft.AspNetCore.Identity;
 using System.Numerics;
 using System.Security.Cryptography.X509Certificates;
 
@@ -14,11 +15,8 @@ internal class Table : ITable
     public Guid Id { get; }
     public IReadOnlyList<IPlayer> SeatedPlayers => _seatedPlayers;
     public bool HasAvailableSeat => _seatedPlayers.Count < Preferences.NumberOfPlayers;
-
     public Guid GameId { get; set; }
-
     private readonly List<IPlayer> _seatedPlayers = new List<IPlayer>();
-
 
     internal Table(Guid id, ITablePreferences preferences)
     {
@@ -26,37 +24,52 @@ internal class Table : ITable
         Preferences = preferences;
         GameId = Guid.Empty;
     }
-
     public void Join(User user)
     {
         if (!HasAvailableSeat)
         {
-            throw new InvalidOperationException("De table is vol");
+            throw new InvalidOperationException("The table is full, try to join a other table");
         }
 
-        if (_seatedPlayers.Any(persone => persone.Id == user.Id))
+        bool alreadySeated = false;
+        foreach (var seatedPlayer in _seatedPlayers)
         {
-            throw new InvalidOperationException("Speler zit al in de Table");
+            if (seatedPlayer.Id == user.Id)
+            {
+                alreadySeated = true;
+                break;
+            }
         }
-
+        if (alreadySeated)
+        {
+            throw new InvalidOperationException("You're already seated on this table");
+        }
         _seatedPlayers.Add(new HumanPlayer(user.Id, user.UserName, user.BirthDate));
+   
     }
+    
 
+   
     public void Leave(Guid userId)
     {
-        var player = _seatedPlayers.FirstOrDefault(persone => persone.Id == userId);
+        IPlayer player = null;
+        foreach (var seatedPlayer in _seatedPlayers)
+        {
+            if (seatedPlayer.Id == userId)
+            {
+                player = seatedPlayer;
+                break;
+            }
+        }
         if (player == null)
         {
-            throw new InvalidOperationException("Speler niet gevonden in de Table ");
+            throw new InvalidOperationException("Speler niet gevonden i de Table ");
         }
         _seatedPlayers.Remove(player);
-
     }
-
-
     public void LetArtificialPlayersJoin(IGamePlayStrategy gamePlayStrategy)
     {
-        throw new NotImplementedException(); // EXTRA 
+        throw new NotImplementedException(); // Extra voor later
     }
 }
 

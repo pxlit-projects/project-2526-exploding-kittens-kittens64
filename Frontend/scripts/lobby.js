@@ -40,9 +40,9 @@ total_players_value.addEventListener('input', () => {
 })
 
 document.addEventListener('DOMContentLoaded', () => {
-    renderTables(dummyTables)
-    //fetchTables()
-    //setInterval(() => fetchTables(), 5000) // uncomment voor auto-refresh
+   
+    fetchTables()
+    setInterval(() => fetchTables(), 5000) // uncomment voor auto-refresh
 })
 
 
@@ -61,7 +61,11 @@ function getUserFromToken() {
 
 async function fetchTables() {
     try {
-        const response = await fetch(`${API_URL}/Tables/with-available-seats`)
+        const response = await fetch(`${API_URL}/Tables/with-available-seats`,{
+            headers: {
+                'Authorization' : `Bearer ${localStorage.getItem('token')}`
+            }
+        })
         const tables = await response.json()
         renderTables(tables)
     } catch (err) {
@@ -180,8 +184,10 @@ create_table_button.addEventListener('click', async () => {
     const user  = getUserFromToken()
     const maxPlayers = parseInt(total_players_value.value)
     const gameType = document.getElementById('game-type').value
-
     const token = localStorage.getItem('token')
+
+    
+
     if (!token){
         showError('Je sessie is niet geldig. Log opnieuw in.');
     }

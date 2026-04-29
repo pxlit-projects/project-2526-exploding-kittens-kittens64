@@ -27,4 +27,5 @@ public interface ITableRepository
     /// Only tables that match the given <paramref name="preferences"/> are returned.
     /// </summary>
     IList<ITable> FindTablesWithAvailableSeats(ITablePreferences preferences);
+
 }
