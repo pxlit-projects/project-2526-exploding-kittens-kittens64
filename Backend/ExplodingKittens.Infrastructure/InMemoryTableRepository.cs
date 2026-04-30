@@ -10,8 +10,19 @@ internal class InMemoryTableRepository : ITableRepository
 {
     private readonly ExpiringDictionary<Guid, ITable> _tableDictionary;
 
+    private static int _instanceCount = 0;
+   
+    
+      
+
     public InMemoryTableRepository()
     {
+        // 2. Hoog de teller op en print het in je console
+        _instanceCount++;
+        Console.WriteLine($"\n[DEBUG] InMemoryTableRepository aangemaakt! Instantie nummer: {_instanceCount}\n");
+
+        _tableDictionary = new ExpiringDictionary<Guid, ITable>(TimeSpan.FromMinutes(15));
+
         _tableDictionary = new ExpiringDictionary<Guid, ITable>(TimeSpan.FromMinutes(15));
     }
 
@@ -34,22 +45,28 @@ internal class InMemoryTableRepository : ITableRepository
         _tableDictionary.TryRemove(tableId, out ITable? _);
     }
 
+
+    //TODO: loop over all tables (user the Values property of _tableDictionary)
+    //and check if those tables have the same preferences and have seats available.
+    //Put the tables that have the same preferences and have seats available in a list and return that list.
+
+
     public IList<ITable> FindTablesWithAvailableSeats(ITablePreferences preferences)
     {
-        //TODO: loop over all tables (user the Values property of _tableDictionary)
-        //and check if those tables have the same preferences and have seats available.
-        //Put the tables that have the same preferences and have seats available in a list and return that list.
-
         var tablesFound = new List<ITable>();
 
         foreach (var table in _tableDictionary.Values)
         {
-            if (table.Preferences == preferences && table.HasAvailableSeat)
+        
+            bool sameMaxPlayers = table.Preferences.NumberOfPlayers == preferences.NumberOfPlayers;
+            bool sameArtificial = table.Preferences.NumberOfArtificialPlayers == preferences.NumberOfArtificialPlayers;
+
+         
+            if (sameMaxPlayers && sameArtificial && table.HasAvailableSeat)
             {
                 tablesFound.Add(table);
             }
-
         }
+
         return tablesFound;
     }
-}

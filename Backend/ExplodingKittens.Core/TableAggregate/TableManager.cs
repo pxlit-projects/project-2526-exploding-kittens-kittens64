@@ -35,8 +35,12 @@ internal class TableManager : ITableManager
 
     public ITable JoinTable(Guid tableId, User user)
     {
-       ITable currentTable = _tableRepository.Get(tableId);
+        ITable currentTable = _tableRepository.Get(tableId);
         currentTable.Join(user);
+
+      
+        _tableRepository.Add(currentTable);
+
         return currentTable;
     }
 
@@ -44,6 +48,13 @@ internal class TableManager : ITableManager
     {
         ITable currentTable = _tableRepository.Get(tableId);
         currentTable.Leave(user.Id);
+
+        if(currentTable.SeatedPlayers.Count == 0)
+        {
+            _tableRepository.Remove(tableId);
+            // verwijdert van het lijst tables die in 
+            // de tableRepository zitten
+        }
     }
 
     public IGame StartGameForTable(Guid tableId)

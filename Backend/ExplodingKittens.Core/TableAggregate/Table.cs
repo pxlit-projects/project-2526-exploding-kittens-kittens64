@@ -63,7 +63,7 @@ internal class Table : ITable
         }
         if (player == null)
         {
-            throw new InvalidOperationException("Speler niet gevonden i de Table ");
+            throw new InvalidOperationException("Speler niet gevonden in de Table ");
         }
         _seatedPlayers.Remove(player);
     }
