@@ -11,9 +11,9 @@ internal class InMemoryTableRepository : ITableRepository
     private readonly ExpiringDictionary<Guid, ITable> _tableDictionary;
 
     private static int _instanceCount = 0;
-   
-    
-      
+
+
+
 
     public InMemoryTableRepository()
     {
@@ -57,11 +57,11 @@ internal class InMemoryTableRepository : ITableRepository
 
         foreach (var table in _tableDictionary.Values)
         {
-        
+
             bool sameMaxPlayers = table.Preferences.NumberOfPlayers == preferences.NumberOfPlayers;
             bool sameArtificial = table.Preferences.NumberOfArtificialPlayers == preferences.NumberOfArtificialPlayers;
 
-         
+
             if (sameMaxPlayers && sameArtificial && table.HasAvailableSeat)
             {
                 tablesFound.Add(table);
@@ -70,3 +70,4 @@ internal class InMemoryTableRepository : ITableRepository
 
         return tablesFound;
     }
+}
