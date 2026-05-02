@@ -6,7 +6,8 @@ console.log("u are logged in");
 if (!token) {
     window.location.href = 'index.html'
 }
-
+let currentTables = []
+let currentWaitingTableId = null;
 
 
 // ============================================================
@@ -20,7 +21,7 @@ if (!token) {
 // - showError() / clearError() → globale foutmelding
 // ============================================================
 
-const API_URL = 'https://localhost:5051/api'
+
 
 // De tafel-lay-out
 const search_button = document.getElementById('search')
@@ -41,8 +42,8 @@ total_players_value.addEventListener('input', () => {
 
 document.addEventListener('DOMContentLoaded', () => {
    
-    fetchTables()
-    setInterval(() => fetchTables(), 5000) // uncomment voor auto-refresh
+    refreshTableList()
+    setInterval(() => refreshTableList(), 5000) 
 })
 
 
@@ -59,17 +60,36 @@ function getUserFromToken() {
     }
 }
 
-async function fetchTables() {
-    try {
-        const response = await fetch(`${API_URL}/Tables/with-available-seats`,{
-            headers: {
-                'Authorization' : `Bearer ${localStorage.getItem('token')}`
+async function refreshTableList() {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`https://localhost:5051/api/Tables/with-available-seats`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (response.ok) {
+        currentTables = await response.json();
+        displayTables(currentTables); 
+
+        if (waiting_message.style.display === 'block') {
+            let myTable = null;
+
+            for (let i = 0; i < currentTables.length; i++) {
+                // Check zowel 'id' als 'Id' van de server
+                let serverId = currentTables[i].id || currentTables[i].Id;
+
+                if (serverId === currentWaitingTableId) {
+                    myTable = currentTables[i];
+                    console.log("Mijn tafel gevonden:", myTable);
+
+                    // De redirect moet VOOR de break staan om gecheckt te worden
+                    let gid = myTable.gameId || myTable.GameId;
+                    if (gid && gid !== "00000000-0000-0000-0000-000000000000") {
+                        window.location.href = `game.html?tableId=${serverId}`;
+                    }
+                    break; 
+                }
             }
-        })
-        const tables = await response.json()
-        renderTables(tables)
-    } catch (err) {
-        showError('Kon tafels niet laden. Is de server actief?')
+        }
     }
 }
 
@@ -92,64 +112,40 @@ function clearError() {
 //   → disable join knop als tafel vol is
 // ============================================================
 
-const dummyTables = [
+/* const dummyTables = [
     { id: 1, name: 'table 1', type: 'Default Game', playerCount: 1, maxPlayers: 3 },
     { id: 2, name: 'table 2', type: 'Default Game', playerCount: 3, maxPlayers: 4 },
     { id: 3, name: 'table 3', type: 'Blitz Mode',   playerCount: 4, maxPlayers: 4 },
     { id: 4, name: 'table 4', type: 'Default Game', playerCount: 1, maxPlayers: 3 },
     { id: 5, name: 'table 5', type: 'Blitz Mode',   playerCount: 0, maxPlayers: 5 },
-]
+] */
 
-function renderTables(tables) {
-    table_list.innerHTML = ''
+function displayTables(tablesToShow) {
+    const list = document.getElementById('table-list');
+    list.innerHTML = ''; // Clear the list
 
-    if (tables.length === 0) {
-        table_list.innerHTML = '<p class="empty-msg">Geen tafels gevonden.</p>'
-        return
+    if (tablesToShow.length === 0) {
+        list.innerHTML = '<p>No tables found.</p>';
+        return;
     }
-
-    tables.forEach(table => {
-        const isFull = table.playerCount >= table.maxPlayers
-        const box = document.createElement('div')
-        box.classList.add('table-box')
-
-        // top row
-        const top = document.createElement('div')
-        top.classList.add('table-top')
-
-        const name = document.createElement('span')
-        name.classList.add('table-name')
-        name.textContent = `${table.name} — ${table.type}`
-
-       
-
-        top.append(name)
-
-        // bottom row
-        const bottom = document.createElement('div')
-        bottom.classList.add('table-bottom')
-
-        const info = document.createElement('span')
-        info.classList.add('table-info')
-        info.textContent = `${table.playerCount} / ${table.maxPlayers} players`
-
-        const actions = document.createElement('div')
-        actions.classList.add('table-actions')
-
-        const buttonTable = document.createElement('button')
-        buttonTable.classList.add('buttonTable-join')
-        buttonTable.textContent = isFull ? 'Full' : 'Join'
-        buttonTable.disabled = isFull
-        buttonTable.addEventListener('click', () => joinTable(table.id))
-        actions.appendChild(buttonTable)
-
-        bottom.append(info, actions)
-        box.append(top, bottom)
-        table_list.appendChild(box)
-    })
+    
+    tablesToShow.forEach(table => {
+        // We maken variabelen aan die zowel kleine letters als hoofdletters checken
+        const tableId = table.id || table.Id;
+        const tableName = table.name || table.Name || 'Game Table';
+        const seatedPlayers = table.seatedPlayers || table.SeatedPlayers || [];
+        const preferences = table.preferences || table.Preferences;
+        const maxPlayers = preferences?.maxPlayers || preferences?.MaxPlayers || 4;
+    
+       list.innerHTML += `
+        <div class="table-box">
+            <h3>${tableName}</h3>
+            <p>Players: ${seatededPlayers.length} / ${maxPlayers}</p>
+            <button onclick="joinTable('${tableId}')">Join</button>
+        </div>
+    `;
+    });
 }
-
-
 
 
 
@@ -161,23 +157,18 @@ function renderTables(tables) {
 // ============================================================
 
 search_button.addEventListener('click', () => {
-    clearError()
-    const maxPlayers = parseInt(total_players_value.value)
-    const gameType   = document.getElementById('game-type').value
+    const selectedCount = parseInt(total_players_value.value);
+  
+    console.log("Zoeken naar tafels met max spelers:", selectedCount);
+    console.log("Huidige lijst in geheugen:", currentTables); // Check of dit leeg is!
 
-
-    const filtered = dummyTables.filter(table_filter =>
-        table_filter.maxPlayers === maxPlayers &&
-        table_filter.type === gameType &&
-        table_filter.playerCount < table_filter.maxPlayers
-    )
-    console.log('filtered:', filtered) 
-    console.log('maxPlayers', maxPlayers)
-    console.log('gameType from dropdown:', gameType)
-    console.log('maxPlayers:', maxPlayers)
-    console.log('matching tables:', dummyTables.filter(t => t.type === gameType))
-    renderTables(filtered)
-})
+    const matches = currentTables.filter(table => {
+        const max = table.preferences?.maxPlayers || table.Preferences?.MaxPlayers;
+        return max === selectedCount;
+    });
+    
+    displayTables(matches);
+});
 
 create_table_button.addEventListener('click', async () => {
     clearError()
@@ -193,16 +184,19 @@ create_table_button.addEventListener('click', async () => {
     }
 
     try {
-        const response = await fetch(`${API_URL}/Tables`, {
+        const response = await fetch(`https://localhost:5051/api/Tables`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
              },
-            body: JSON.stringify({ maxPlayers, gameType })
+    
+            body: JSON.stringify({ numerOfPlayers :maxPlayers, gameType })
         })
         if (response.ok) {
             const data = await response.json()
-            showTableWaiting(user?.username || 'Speler', 1, maxPlayers, data.tableId)
+            console.log("Tafel succesvol aangemaakt. Server data:", data);
+            currentWaitingTableId = data.id;
+            showTableWaiting(user?.username || 'Speler', 1, maxPlayers, data.id)
         } else {
             showError('Kon tafel niet aanmaken.')
         }
@@ -228,7 +222,12 @@ async function joinTable(tableId, maxPlayers) {
     const user = getUserFromToken()
 
     try {
-        const response = await fetch(`${API_URL}/Tables/${tableId}/join`)
+        const response = await fetch(`https://localhost:5051/api/Tables/${tableId}/join`,{
+            method: 'POST',
+            headers: {'Content-Type': "application/json",
+                'Authorization' : `Bearer ${token}`
+            }
+        })
         const data = await response.json()
         if (response.ok) {
             if (data.gameStarted) {
@@ -246,48 +245,63 @@ async function joinTable(tableId, maxPlayers) {
     
 }
 
-function showTableWaiting(playerName, currentPlayers, maxPlayers, tableId) {
-    waiting_message.style.display = 'block'
-    waiting_subtitle.textContent = `${currentPlayers} / ${maxPlayers} spelers aanwezig`
-    console.log("Banner tonen voor tafel:", tableId);
-    waiting_seats.innerHTML = ''
-    for (let i = 0; i < maxPlayers; i++) {
-        const seat = document.createElement('div')
-        seat.classList.add('seat')
-        if (i === 0) {
-            seat.textContent = playerName.slice(0, 3)
-        } else if (i < currentPlayers) {
-            seat.textContent = '...'
-        } else {
-            seat.classList.add('empty')
-            seat.textContent = '—'
+function showTableWaiting(playerName,currentPlayers,maxPlayers,tableId){
+
+    document.getElementById('table-list').style.display = 'none';
+
+    waiting_message.style.display = 'block';
+    waiting_subtitle.textContent = `${currentPlayers} / ${maxPlayers} spelers aanwezig`;
+
+    let seatsHtml = "";
+    for (let i = 0; i < maxPlayers; i++){
+        let content = "-";
+        let className = 'seat empty';
+
+        if (i == 0){
+            content = playerName.substring(0,3)
+            className = "seat";
+        }else if (i < currentPlayers){
+            content = "..."
+            className = "seat"
         }
-        waiting_seats.appendChild(seat)
+           seatsHtml += `<div class="${className}">${content}</div>`;
+
     }
+ 
+    waiting_seats.innerHTML = seatsHtml;
 
-    const existingBtn = waiting_message.querySelector('.leave-btn')
-    if (existingBtn) existingBtn.remove()
+    const buttonId = `leave-button-${tableId}`;
+    const oldButton = waiting_message.querySelector('.leave-button');
+    if (oldButton) {
+        oldButton.remove();
+    }
+    // wanneer je een tabel aanroept blijf je steeds leave button opvragen
+    // om dat te voorkomen zoekt de query voor een leave button als die bestaat verwijdert hij de button
 
-    const leaveBtn = document.createElement('button')
-    leaveBtn.textContent = 'Verlaat Tafel'
-    leaveBtn.classList.add('buttonTable-secondary', 'leave-btn')
-    leaveBtn.style.marginTop = '0.75rem'
-    leaveBtn.addEventListener('click', () => leaveTable(tableId))
-    waiting_message.appendChild(leaveBtn)
+    waiting_message.insertAdjacentHTML('beforeend', `
+        <button class="buttonTable-secondary leave-button" 
+                style="margin-top: 0.75rem" 
+                onclick="leaveTable('${tableId}')">
+            Verlaat Tafel
+        </button>
+    `);
 }
+
 
 async function leaveTable(tableId) {
     clearError()
 
     try {
-        const response = await fetch(`${API_URL}/Tables/${tableId}/leave`, {
+        const response = await fetch(`https://localhost:5051/api/Tables/${tableId}/leave`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
+            headers: { 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+             }
         })
         if (response.ok) {
-            
+            document.getElementById('table-list').style.display = 'block';
             waiting_message.style.display = 'none'
-            fetchTables()
+            refreshTableList()
         } else {
             showError('Kon de tafel niet verlaten.')
         }
@@ -295,8 +309,7 @@ async function leaveTable(tableId) {
         showError('Serverfout. Probeer opnieuw!')
     }
 
-    
     waiting_message.style.display = 'none'
-    renderTables(dummyTables)
+   
 }
 

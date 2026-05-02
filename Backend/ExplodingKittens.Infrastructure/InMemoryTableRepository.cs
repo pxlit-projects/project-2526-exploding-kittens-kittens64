@@ -11,20 +11,20 @@ internal class InMemoryTableRepository : ITableRepository
     private readonly ExpiringDictionary<Guid, ITable> _tableDictionary;
 
     private static int _instanceCount = 0;
-   
-    
-      
+
+
 
     public InMemoryTableRepository()
     {
-        // 2. Hoog de teller op en print het in je console
+       
         _instanceCount++;
-        Console.WriteLine($"\n[DEBUG] InMemoryTableRepository aangemaakt! Instantie nummer: {_instanceCount}\n");
+       
 
         _tableDictionary = new ExpiringDictionary<Guid, ITable>(TimeSpan.FromMinutes(15));
 
-        _tableDictionary = new ExpiringDictionary<Guid, ITable>(TimeSpan.FromMinutes(15));
+    
     }
+
 
     public void Add(ITable table)
     {
