@@ -72,6 +72,7 @@ internal class TableManager : ITableManager
 
         _gameRepository.Add(game);
 
+        _tableRepository.Remove(tableId);
         _tableRepository.Add(table);
 
         return game;
