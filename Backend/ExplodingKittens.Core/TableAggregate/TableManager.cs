@@ -59,6 +59,21 @@ internal class TableManager : ITableManager
 
     public IGame StartGameForTable(Guid tableId)
     {
-        throw new NotImplementedException();
+        var table = _tableRepository.Get(tableId);
+
+        if (table.SeatedPlayers.Count < 2)
+        {
+            throw new InvalidOperationException("not enough players");
+        }
+
+        var game = _gameFactory.CreateNewForTable(table);
+
+        table.GameId = game.Id;
+
+        _gameRepository.Add(game);
+
+        _tableRepository.Add(table);
+
+        return game;
     }
 }
