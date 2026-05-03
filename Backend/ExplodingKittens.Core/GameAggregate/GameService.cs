@@ -6,13 +6,15 @@ namespace ExplodingKittens.Core.GameAggregate;
 /// <inheritdoc cref="IGameService"/>
 internal class GameService : IGameService
 {
+    private readonly IGameRepository _gameRepository;
     public GameService(IGameRepository gameRepository)
     {
+        _gameRepository = gameRepository;
     }
 
     public IGame GetGame(Guid gameId)
     {
-        throw new NotImplementedException();
+        return _gameRepository.GetById(gameId);
     }
 
     public IGame PlayAction(Guid gameId, Guid playerId, IReadOnlyList<Card> cards, Guid? targetPlayerId, Card? targetCard, int? drawPileIndex)
