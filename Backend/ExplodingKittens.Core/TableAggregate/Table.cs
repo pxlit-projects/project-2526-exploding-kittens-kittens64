@@ -43,6 +43,7 @@ internal class Table : ITable
         if (alreadySeated)
         {
             throw new InvalidOperationException("You're already seated on this table");
+
         }
         _seatedPlayers.Add(new HumanPlayer(user.Id, user.UserName, user.BirthDate));
    
