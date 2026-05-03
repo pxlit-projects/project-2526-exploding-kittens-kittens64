@@ -1,275 +1,242 @@
-const token = sessionStorage.getItem('token')
+//  Auth check 
+const token = sessionStorage.getItem('token');
 if (!token) {
-    window.location.href = 'index.html'
+    window.location.href = 'index.html';
 }
-console.log(token);
 
-let currentTables = []
+//  tijdelijke variabelen
+let currentTables= [];
 let currentWaitingTableId = null;
-let currentFilter = null;
+let currentFilter= null;
 
-const search_button = document.getElementById('search')
-const create_table_button = document.getElementById('create-table')
-const table_list = document.getElementById('table-list')
-const total_players_value = document.getElementById('total-players')
-const total_player_label = document.getElementById('player-count-label')
-const waiting_message = document.getElementById('waiting-message')
-const waiting_title = document.getElementById('waiting_title')
-const waiting_seats = document.getElementById('waiting-seats')
-const waiting_subtitle = document.getElementById('waiting-subtitle')
+//  DOM variabelen 
+const searchButton= document.getElementById('search');
+const createTableButton  = document.getElementById('create-table');
+const tableList= document.getElementById('table-list');
+const totalPlayersSlider  = document.getElementById('total-players');
+const playerCountLabel= document.getElementById('player-count-label');
+const waitingMessage= document.getElementById('waiting-message');
+const waitingTitle  = document.getElementById('waiting_title');
+const waitingSeats = document.getElementById('waiting-seats');
+const waitingSubtitle= document.getElementById('waiting-subtitle');
 
-total_players_value.addEventListener('input', () => {
-    total_player_label.textContent = total_players_value.value
-})
+//  Authenticatie processen
 
-document.addEventListener('DOMContentLoaded', () => {
-    currentWaitingTableId = null;
-    waiting_message.style.display = 'none';
-    document.getElementById('table-list').style.display = 'block';
-
-    refreshTableList();
-    setInterval(() => refreshTableList(), 1000);
-});
-
+function getToken() {
+    return sessionStorage.getItem('token');
+}
 function getUserFromToken() {
-    const token = sessionStorage.getItem('token')
-    if (!token) return null
+    const storedToken = getToken();
+    if (!storedToken) return null;
     try {
-        const payload = token.split('.')[1]
-        return JSON.parse(atob(payload))
+        const payload = storedToken.split('.')[1];
+        return JSON.parse(atob(payload));
     } catch {
-        return null
+        return null;
     }
 }
 
-async function refreshTableList() {
-    const token = sessionStorage.getItem('token');
+// error block text tonen met behulp van functies
 
-    const maxPlayers = parseInt(total_players_value.value) || 2;
-
-    const url = `https://localhost:5051/api/Tables/with-available-seats?NumberOfPlayers=${maxPlayers}&NumberOfArtificialPlayers=0`;
-
-    const response = await fetch(url, {
-        headers: { 'Authorization': `Bearer ${token}` }
-    });
-
-    if (response.ok) {
-        currentTables = await response.json();
-        // console.log("Tafels ontvangen:", currentTables);
-        // console.log("URL aangeroepen:", url);
-        // console.log("Data van server:", currentTables); 
-        displayTables(currentTables);
-
-        if (currentFilter !== null) {
-            const filteredTables = [];
-
-            for (const table of currentTables) {
-
-                const max = table.preferences?.numberOfPlayers || 0;
-                if (max === currentFilter) {
-                    filteredTables.push(table);
-                }
-            }
-            displayTables(filteredTables);
-        } else {
-
-            if (waiting_message.style.display === 'block') {
-                let myTable = currentTables.find(table => {
-                    let serverId = table.id || table.Id;
-                    return serverId === currentWaitingTableId;
-                });
-                if (myTable) {
-                    let currentPlayers = myTable.seatedPlayers.length
-                    const maxPlayers = myTable.preferences?.numberOfPlayers
-                    const playerName = getUserFromToken()?.username || 'Speler'
-
-                    waiting_subtitle.textContent = `${currentPlayers} / ${maxPlayers} spelers aanwezig`;
-                    seatsHtml = ""
-                    for (let i = 0; i < maxPlayers; i++) {
-                        let content = "-";
-                        let className = 'seat empty';
-
-                        if (i < currentPlayers) {
-                            content = (i === 0) ? playerName.substring(0, 3) : "...";
-                            className = "seat";
-                        }
-                        seatsHtml += `<div class="${className}">${content}</div>`;
-                    }
-                    waiting_seats.innerHTML = seatsHtml
-
-                    let gid = myTable.gameId || myTable.GameId;
-                    if (gid && gid !== "00000000-0000-0000-0000-000000000000") {
-                        let tableId = myTable.id || myTable.Id;
-                        window.location.href = `game.html?tableId=${tableId}`;
-
-                    }
-                }
-
-            } else {
-                displayTables(currentTables);
-            }
-        }
-    }
-
+function showError(message) {
+    document.getElementById('error-message').textContent = message;
 }
 
+function clearError() {
+    document.getElementById('error-message').textContent = '';
+}
 
-search_button.addEventListener('click', async () => {
-    clearError();
-    await refreshTableList();
+// de zitplekken tonen van de table
+function buildSeatsHtml(playerName, currentPlayers, maxPlayers) {
+    let html  = '';
+    for (let i = 0; i < maxPlayers; i++) {
+        const isTaken= i < currentPlayers;
+        const content = isTaken ? (i === 0 ? playerName.substring(0, 3) : '...') : '-';
+        const className= isTaken ? 'seat' : 'seat empty';
+        html += `<div class="${className}">${content}</div>`;
+    }
+    return html;
+}
 
-    const selectedCount = parseInt(total_players_value.value);
-    const filteredTables = currentTables.filter(table => {
-
-        const max = table.preferences?.numberOfPlayers || 0;
-        return max === selectedCount;
-    });
-    displayTables(filteredTables);
-});
-
-
+//  displayTables -> functioneert om tables te weergeven die in de lijst staan
 
 function displayTables(tablesToShow) {
-    const list = document.getElementById('table-list');
-    list.innerHTML = '';
-
+    tableList.innerHTML = '';
     if (!tablesToShow || tablesToShow.length === 0) {
-        list.innerHTML = '<p>No tables found.</p>';
+        tableList.innerHTML = '<p>No tables found.</p>';
         return;
     }
 
     tablesToShow.forEach(table => {
-        const tableId = table.id;
-        const seatedCount = table.seatedPlayers ? table.seatedPlayers.length : 0;
-        const maxPlayers = table.preferences ? table.preferences.numberOfPlayers : 0;
-
-        list.innerHTML += `
-        <div class="table-box" style="border: 1px solid #ccc; padding: 10px; margin: 10px;">
-            <h3>Table: ${tableId.substring(0, 8)}</h3>
-            <p>Players: ${seatedCount} / ${maxPlayers}</p>
-            <button onclick="joinTable('${tableId}')">Join</button>
-        </div>
-        `;
+        const displayId = table.id;
+        const displaySeated= table.seatedPlayers ? table.seatedPlayers.length : 0;
+        const displayMaxSeats  = table.preferences ? table.preferences.numberOfPlayers : 0;
+       
+        tableList.innerHTML += `<div class="table-box"><h3>Table:
+         ${displayId.substring(0, 8)}
+        </h3><p>Players: ${displaySeated} / ${displayMaxSeats}
+        </p><button onclick="joinTable('${displayId}')">Join
+        </button></div>`;
+        
     });
 }
 
+//  showTableWaiting -> toont de table wanneer je als user in een table al joined
+//                   -> terwijl je aan het wachten bent
 
-create_table_button.addEventListener('click', async () => {
-    clearError()
-    const user = getUserFromToken()
-    const maxPlayers = parseInt(total_players_value.value)
-    const gameType = document.getElementById('game-type').value
-    const token = sessionStorage.getItem('token')
+function showTableWaiting(playerName, currentPlayers, maxPlayers, tableId) {
+    tableList.style.displa = 'none';
+    waitingMessage.style.display  = 'block';
+    waitingSubtitle.textContent= `${currentPlayers} / ${maxPlayers} spelers aanwezig`;
+    waitingSeats.innerHTML  = buildSeatsHtml(playerName, currentPlayers, maxPlayers);
 
-    if (!token) {
-        showError('Je sessie is niet geldig. Log opnieuw in.');
-        return;
+    const oldLeaveButton= waitingMessage.querySelector('.leave-button');
+    if (oldLeaveButton) oldLeaveButton.remove();
+
+    waitingMessage.innerHTML += `<button class="buttonTable-secondary leave-button" onclick="leaveTable('${tableId}')">
+    Verlaat Tafel</button>`;
+}
+
+
+// updateWaitingRoom(table) -> wanneer een speler leaved of joined update deze functie
+//                          -> de aantal spelers van de table
+
+function updateWaitingRoom(table) {
+    const waitingPlayerCount = table.seatedPlayers.length;
+    const waitingMaxSeats= table.preferences?.numberOfPlayers;
+    const waitingPlayerName = getUserFromToken()?.username || 'Speler';
+
+    waitingSubtitle.textContent = `${waitingPlayerCount} / ${waitingMaxSeats} spelers aanwezig`;
+    waitingSeats.innerHTML= buildSeatsHtml(waitingPlayerName, waitingPlayerCount, waitingMaxSeats);
+
+    // De logica om de game te laten starten
+    const gameId = table.gameId || table.GameId;
+    const isRealGame = gameId && gameId !== '00000000-0000-0000-0000-000000000000';
+    if (isRealGame) {
+        const tableId = table.id || table.Id;
+        window.location.href = `game.html?tableId=${tableId}`;
     }
+}
 
-    try {
-        const response = await fetch(`https://localhost:5051/api/Tables`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-            body: JSON.stringify({ numberOfPlayers: maxPlayers, NumberOfArtificialPlayers: 0, GameType: gameType })
-        })
-        if (response.ok) {
-            const data = await response.json()
-            currentWaitingTableId = data.id;
+//  refreshTableList()  -> functie om de tables te refreshen in de list
 
-            // FIXED: Get actual seated count from response
-            const seatedCount = data.seatedPlayers ? data.seatedPlayers.length : 1;
-            showTableWaiting(user?.username || 'Speler', seatedCount, maxPlayers, data.id)
-        } else {
-            showError('Kon tafel niet aanmaken.')
+async function refreshTableList() {
+    const sliderMaxPlayers = parseInt(totalPlayersSlider.value) || 2;
+    const url= `https://localhost:5051/api/Tables/with-available-seats?NumberOfPlayers=${sliderMaxPlayers}&NumberOfArtificialPlayers=0`;
+
+    const fetchResponse = await fetch(url, {
+        headers: { 'Authorization': `Bearer ${getToken()}` }
+    });
+
+    if (!fetchResponse.ok) return;
+
+    currentTables  = await fetchResponse.json();
+
+    const isWaiting = waitingMessage.style.display === 'block';
+    const myTable= currentTables.find(table => (table.id || table.Id) === currentWaitingTableId);
+    const tablesWithSelectedPlayerCount = currentTables.filter(table => (table.preferences?.numberOfPlayers || 0) === currentFilter);
+
+    if (isWaiting && myTable) {
+        updateWaitingRoom(myTable);
+    }
+    else if (currentFilter !== null)
+        { 
+            displayTables(tablesWithSelectedPlayerCount);
         }
-    } catch (err) {
-        showError('Server Error, try again')
-    }
-})
+    else {
+        displayTables(currentTables);
+    } 
+}
 
 async function joinTable(tableId) {
     clearError();
-    const token = sessionStorage.getItem('token');
-    console.log(token);
 
+    const joinFetchResponse = await fetch(`https://localhost:5051/api/Tables/${tableId}/join`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${getToken()}` }
+    });
 
-    try {
-        const response = await fetch(`https://localhost:5051/api/Tables/${tableId}/join`, {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-
-        if (response.ok) {
-            const joinedTable = await response.json();
-            currentWaitingTableId = joinedTable.id;
-
-
-            const user = getUserFromToken();
-            const seatedCount = joinedTable.seatedPlayers ? joinedTable.seatedPlayers.length : 1;
-            const maxPlayers = joinedTable.preferences?.numberOfPlayers || 0;
-
-            showTableWaiting(user?.username || 'Speler', seatedCount, maxPlayers, joinedTable.id);
-        } else {
-            showError('Kon tafel niet joinen.');
-        }
-    } catch (err) {
-        showError('Server Error, try again');
+    if (!joinFetchResponse.ok) {
+        showError('Could not join table');
+        return;
     }
+
+    const joinedTable= await joinFetchResponse.json();
+    currentWaitingTableId  = joinedTable.id;
+    const joinPlayerName= getUserFromToken()?.username || 'Speler';
+    const joinSeatedCount = joinedTable.seatedPlayers ? joinedTable.seatedPlayers.length : 1;
+    const joinMaxSeats  = joinedTable.preferences?.numberOfPlayers || 0;
+
+    showTableWaiting(joinPlayerName, joinSeatedCount, joinMaxSeats, joinedTable.id);
 }
-
-function showTableWaiting(playerName, currentPlayers, maxPlayers, tableId) {
-    document.getElementById('table-list').style.display = 'none';
-    waiting_message.style.display = 'block';
-    waiting_subtitle.textContent = `${currentPlayers} / ${maxPlayers} spelers aanwezig`;
-
-    let seatsHtml = "";
-    for (let i = 0; i < maxPlayers; i++) {
-        let content = "-";
-        let className = 'seat empty';
-
-
-        if (i < currentPlayers) {
-            content = (i === 0) ? playerName.substring(0, 3) : "...";
-            className = "seat";
-        }
-
-        seatsHtml += `<div class="${className}">${content}</div>`;
-    }
-    waiting_seats.innerHTML = seatsHtml;
-
-    const oldButton = waiting_message.querySelector('.leave-button');
-    if (oldButton) oldButton.remove();
-
-    waiting_message.insertAdjacentHTML('beforeend', `
-        <button class="buttonTable-secondary leave-button" 
-                style="margin-top: 0.75rem" 
-                onclick="leaveTable('${tableId}')">
-            Verlaat Tafel
-        </button>
-    `);
-}
-
 async function leaveTable(tableId) {
-    clearError()
-    const token = sessionStorage.getItem('token');
-
-    try {
-        const response = await fetch(`https://localhost:5051/api/Tables/${tableId}/leave`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
-        })
-        if (response.ok) {
-            currentWaitingTableId = null;
-            document.getElementById('table-list').style.display = 'block';
-            waiting_message.style.display = 'none'
-            await refreshTableList();
-        } else {
-            showError('Can not leave the table')
+    clearError();
+    const leaveFetchResponse = await fetch(`https://localhost:5051/api/Tables/${tableId}/leave`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${getToken()}`
         }
-    } catch (err) {
-        showError('Server Error try again')
+    });
+
+    if (!leaveFetchResponse.ok) {
+        showError('The table could not be made');
+        return;
     }
+    currentWaitingTableId = null;
+    tableList.style.display = 'block';
+    waitingMessage.style.display = 'none';
+    await refreshTableList();
 }
 
-function showError(message) { document.getElementById('error-message').textContent = message }
-function clearError() { document.getElementById('error-message').textContent = '' }
+//  Event listeners 
+
+totalPlayersSlider.addEventListener('input', () => {
+    playerCountLabel.textContent = totalPlayersSlider.value;
+});
+searchButton.addEventListener('click', async () => {
+    clearError();
+    await refreshTableList();
+
+    const searchSelectedCount = parseInt(totalPlayersSlider.value);
+    const filteredBySearch = currentTables.filter(table => (table.preferences?.numberOfPlayers || 0) === searchSelectedCount);
+    displayTables(filteredBySearch);
+});
+
+createTableButton.addEventListener('click', async () => {
+    clearError();
+
+    const createUser = getUserFromToken();
+    const createMaxSeats = parseInt(totalPlayersSlider.value);
+    const createGameType = document.getElementById('game-type').value;
+    const createFetchResponse = await fetch('https://localhost:5051/api/Tables', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${getToken()}`
+        },
+        body: JSON.stringify({
+            numberOfPlayers: createMaxSeats,
+            NumberOfArtificialPlayers: 0,
+            GameType: createGameType
+        })
+    });
+
+    if (!createFetchResponse.ok) {
+        showError('The Table could not be made');
+        return;
+    }
+
+    const newTable = await createFetchResponse.json();
+    currentWaitingTableId = newTable.id;
+    const createSeatedCount = newTable.seatedPlayers ? newTable.seatedPlayers.length : 1;
+    showTableWaiting(createUser?.username || 'Speler', createSeatedCount, createMaxSeats, newTable.id);
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    currentWaitingTableId = null;
+    waitingMessage.style.display = 'none';
+    tableList.style.display = 'block';
+    refreshTableList();
+    setInterval(refreshTableList, 1000);
+});
