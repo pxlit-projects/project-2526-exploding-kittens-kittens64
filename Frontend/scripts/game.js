@@ -1,6 +1,4 @@
-// ============================================================
-// Exploding Kittens — game.js
-// ============================================================
+
 
 const API_BASE    = "https://localhost:5051/api";
 const IMAGES_BASE = "images/cards";
@@ -22,7 +20,7 @@ const Card = {
   TacoCat:            104,
 };
 
-// Reverse lookup: integer  name
+
 const CARD_NAME = Object.fromEntries(Object.entries(Card).map(([k, v]) => [v, k]));
 
 // Card image variants 
@@ -93,7 +91,7 @@ function cardImageUrl(name, slotIndex) {
   return `${IMAGES_BASE}/${file}`;
 }
 
-// Human-readable label
+// readable label
 const CARD_LABEL = {
   ExplodingKitten:    "Exploding Kitten",
   Defuse:             "Defuse",
@@ -110,8 +108,7 @@ const CARD_LABEL = {
   TacoCat:            "Tacocat",
 };
 
-// URL params 
-// Usage: game.html?tableId=<guid>&playerId=<guid>
+// URL
 const params    = new URLSearchParams(window.location.search);
 const TABLE_ID  = params.get("tableId");
 const PLAYER_ID = params.get("playerId");
@@ -120,14 +117,14 @@ let pollInterval = null;
 
 // Boot 
 if (!TABLE_ID) {
-  setStatus("Geen tableId in de URL. Gebruik: game.html?tableId=...&playerId=...");
+  setStatus("Found no table ID.");
 } else {
   pollTable();
 }
 
-// Phase 1: poll table until hasAvailableSeat === false 
+// poll table until full, then poll for gameId
 function pollTable() {
-  setStatus("Wachten tot alle plaatsen aan tafel zijn ingenomen…");
+  setStatus("Wait until the table is full.");
 
   pollInterval = setInterval(async () => {
     try {
@@ -145,14 +142,14 @@ function pollTable() {
         }
       }
     } catch (e) {
-      setStatus(`Fout bij ophalen tafel: ${e.message}`);
+      setStatus(`error: ${e.message}`);
     }
   }, 2000);
 }
 
-// Phase 1b: table full but gameId not set yet
+// once table is full, poll for gameId
 function pollTableForGameId() {
-  setStatus("Tafel vol — spel wordt aangemaakt…");
+  setStatus("Table is full! Starting game soon.");
   pollInterval = setInterval(async () => {
     try {
       const table = await apiFetch(`/Tables/${TABLE_ID}`);
@@ -162,18 +159,18 @@ function pollTableForGameId() {
         await startGamePolling(table.gameId);
       }
     } catch (e) {
-      setStatus(`Wachten op spel-id: ${e.message}`);
+      setStatus(`Waiting for game ID: ${e.message}`);
     }
   }, 2000);
 }
 
-// Phase 2: load + poll game every 2s 
+// load + poll game every 2 seconds
 async function startGamePolling(gameId) {
   try {
     const game = await apiFetch(`/Games/${gameId}`);
     renderGame(game);
   } catch (e) {
-    setStatus(`Fout bij laden spel: ${e.message}`);
+    setStatus(`Error when loading game: ${e.message}`);
     return;
   }
 
@@ -186,7 +183,7 @@ async function startGamePolling(gameId) {
         pollInterval = null;
       }
     } catch (e) {
-      console.warn("Poll fout:", e.message);
+      console.warn("Poll error:", e.message);
     }
   }, 2000);
 }
@@ -217,7 +214,7 @@ function renderTableWaiting(table) {
   });
 }
 
-// Render: game ───────
+// Render: game
 function renderGame(game) {
   renderStatus(game);
   renderDrawPile(game);
@@ -229,20 +226,20 @@ function renderGame(game) {
 function renderStatus(game) {
   if (game.hasEnded) {
     const winner = (game.players ?? []).find(p => !p.eliminated);
-    setStatus(`🎉 ${winner?.name ?? "Iemand"} heeft gewonnen!`);
+    setStatus(`🎉 ${winner?.name ?? "Someone"} Has won!`);
     return;
   }
   const current  = (game.players ?? []).find(p => p.id === game.playerToPlayId);
   const isMyTurn = PLAYER_ID && game.playerToPlayId === PLAYER_ID;
   setStatus(isMyTurn
-    ? "⭐ Jij bent aan de beurt!"
+    ? "⭐ It is your turn!"
     : `Beurt van ${current?.name ?? "…"}`
   );
 }
 
 function renderDrawPile(game) {
   const el = document.getElementById("drawPile");
-  if (el) el.textContent = `${game.drawPileCount ?? "?"} kaarten`;
+  if (el) el.textContent = `${game.drawPileCount ?? "?"} Cards`;
 }
 
 function renderDiscardPile(game) {
@@ -251,7 +248,7 @@ function renderDiscardPile(game) {
 
   const pile = game.discardPile ?? [];
   if (pile.length === 0) {
-    el.innerHTML      = "Leeg";
+    el.innerHTML      = "Empty";
     el.style.padding  = "";
     return;
   }
@@ -276,17 +273,17 @@ function renderMyCards(game) {
 
   const me = (game.players ?? []).find(p => p.cardsInHand && p.cardsInHand.length > 0);;
   if (!me) {
-    el.innerHTML = "<p>Speler niet gevonden (controleer playerId in de URL).</p>";
+    el.innerHTML = "<p>Player not found.</p>";
     return;
   }
   if (me.eliminated) {
-    el.innerHTML = `<p style="color:#c0392b;font-weight:bold;">Je bent geëlimineerd 💀</p>`;
+    el.innerHTML = `<p style="color:#c0392b;font-weight:bold;">You are eliminated 💀</p>`;
     return;
   }
 
   const hand = me.cardsInHand ?? [];
   if (hand.length === 0) {
-    el.innerHTML = "<p>Geen kaarten zichtbaar.</p>";
+    el.innerHTML = "<p>Cards are not visible.</p>";
     return;
   }
 
@@ -320,7 +317,7 @@ function renderOpponents(game) {
   });
 }
 
-// Card element (with real image) ─
+// Card element
 function makeCardEl(name, slotIndex) {
   const div = document.createElement("div");
   div.className = "card";
@@ -349,7 +346,7 @@ function makeCardEl(name, slotIndex) {
   return div;
 }
 
-// Status helper ──────
+// Status helper
 function setStatus(msg) {
   const el = document.getElementById("status");
   if (el) el.innerHTML = `<p>${msg}</p>`;
