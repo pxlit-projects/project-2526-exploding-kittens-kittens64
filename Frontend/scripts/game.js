@@ -170,7 +170,7 @@ async function startGamePolling(gameId) {
     const game = await apiFetch(`/Games/${gameId}`);
     renderGame(game);
   } catch (e) {
-    setStatus(`Fout bij laden spel: ${e.message}`);
+    setStatus(`Error when loading game: ${e.message}`);
     return;
   }
 
@@ -232,7 +232,7 @@ function renderStatus(game) {
   const current  = (game.players ?? []).find(p => p.id === game.playerToPlayId);
   const isMyTurn = PLAYER_ID && game.playerToPlayId === PLAYER_ID;
   setStatus(isMyTurn
-    ? "⭐ Jij bent aan de beurt!"
+    ? "⭐ It is your turn!"
     : `Beurt van ${current?.name ?? "…"}`
   );
 }
