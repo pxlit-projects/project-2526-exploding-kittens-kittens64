@@ -1,24 +1,33 @@
-using ExplodingKittens.Core.ActionAggregate.Contracts;
 using ExplodingKittens.Core.CardAggregate;
 using ExplodingKittens.Core.GameAggregate.Contracts;
 
 namespace ExplodingKittens.Core.ActionAggregate;
 
-/// <inheritdoc cref="IAction"/>
-public abstract class ActionBase
+internal abstract class ActionBase
 {
+    protected IGame _game;
+    protected Guid _playerId;
+    protected IReadOnlyList<Card> _cards;
+    protected bool _canBeNoped;
+    protected Card? _targetCard;
+    protected Guid? _targetPlayerId;
+    protected int? _drawPileIndex;
+
     protected ActionBase(IGame game, Guid playerId, IReadOnlyList<Card> cards, bool canBeNoped)
     {
-        
+        _game = game;
+        _playerId = playerId;
+        _cards = cards;
+        _canBeNoped = canBeNoped;
     }
 
-    protected ActionBase(IGame game, Guid playerId, IReadOnlyList<Card> cards, bool canBeNoped, Card? targetCard, Guid? targetPlayerId, int? drawPileIndex) : this(game, playerId, cards, canBeNoped)
+    protected ActionBase(IGame game, Guid playerId, IReadOnlyList<Card> cards, bool canBeNoped, Card? targetCard, Guid? targetPlayerId, int? drawPileIndex)
+        : this(game, playerId, cards, canBeNoped)
     {
-        
+        _targetCard = targetCard;
+        _targetPlayerId = targetPlayerId;
+        _drawPileIndex = drawPileIndex;
     }
 
-    /// <summary>
-    /// Classes that inherit from ActionBase should implement this method to execute the specific logic of the action.
-    /// </summary>
-    protected abstract void Execute();
+    public abstract void Execute();
 }
