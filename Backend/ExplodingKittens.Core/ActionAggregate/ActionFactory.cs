@@ -53,7 +53,6 @@ internal class ActionFactory : IActionFactory
             };
         }
 
-        // --- Multi-Card Combinations (User Story 8) ---
         if (!cards.All(c => c == cards[0]))
             throw new InvalidOperationException("Different cat cards are not allowed.");
 
@@ -61,17 +60,12 @@ internal class ActionFactory : IActionFactory
             throw new InvalidOperationException("When multiple cat cards are played, a target player must be specified.");
 
         if (cards.Count == 2)
-        {
-            // 2-of-a-kind: Steal a random card
             return new StealRandomCardAction(game, playerId, cards, true, targetCard, targetPlayerId, drawPileIndex);
-        }
 
         if (cards.Count == 3)
         {
-            // 3-of-a-kind: Steal a specific card (requires targetCard to be set)
             if (targetCard == null)
                 throw new InvalidOperationException("When three cat cards are played, a target card must be specified.");
-
             return new StealSpecificCardAction(game, playerId, cards, true, targetCard, targetPlayerId, drawPileIndex);
         }
 

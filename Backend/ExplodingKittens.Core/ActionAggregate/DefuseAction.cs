@@ -1,15 +1,12 @@
+using ExplodingKittens.Core.CardAggregate;
 using ExplodingKittens.Core.GameAggregate.Contracts;
 
 namespace ExplodingKittens.Core.ActionAggregate;
 
-/// <summary>
-/// Defuse an Exploding Kitten: place it back in the draw pile at the chosen index.
-/// The turn is over after playing this card
-/// </summary>
-internal class DefuseAction
+internal class DefuseAction : ActionBase
 {
-    public DefuseAction(IGame game, Guid playerId, int drawPileIndex)
-    {
-        
-    }
+    public DefuseAction(IGame game, Guid playerId, IReadOnlyList<Card> cards, bool canBeNoped, Card? targetCard, Guid? targetPlayerId, int? drawPileIndex)
+        : base(game, playerId, cards, canBeNoped, targetCard, targetPlayerId, drawPileIndex) { }
+
+    public override void Execute() { }
 }

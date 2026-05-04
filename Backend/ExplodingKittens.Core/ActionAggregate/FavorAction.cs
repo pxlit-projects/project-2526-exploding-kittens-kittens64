@@ -1,12 +1,12 @@
+using ExplodingKittens.Core.CardAggregate;
 using ExplodingKittens.Core.GameAggregate.Contracts;
 
 namespace ExplodingKittens.Core.ActionAggregate;
 
-/// <summary>Target player gives you a card of their choice. Target chooses which card to give.</summary>
-internal class FavorAction
+internal class FavorAction : ActionBase
 {
-    public FavorAction(IGame game, Guid playerId, Guid targetPlayerId)
-    {
-    }
+    public FavorAction(IGame game, Guid playerId, IReadOnlyList<Card> cards, bool canBeNoped, Card? targetCard, Guid? targetPlayerId, int? drawPileIndex)
+        : base(game, playerId, cards, canBeNoped, targetCard, targetPlayerId, drawPileIndex) { }
 
+    public override void Execute() { }
 }
