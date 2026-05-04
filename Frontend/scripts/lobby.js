@@ -104,9 +104,9 @@ function showTableWaiting(playerName, currentPlayers, maxPlayers, tableId) {
 function updateWaitingRoom(table) {
     const waitingPlayerCount = table.seatedPlayers.length;
     const waitingMaxSeats= table.preferences?.numberOfPlayers;
-    const waitingPlayerName = getUserFromToken()?.username || 'Speler';
+    const waitingPlayerName = getUserFromToken()?.username || '';
 
-    waitingSubtitle.textContent = `${waitingPlayerCount} / ${waitingMaxSeats} spelers aanwezig`;
+    waitingSubtitle.textContent = `${waitingPlayerCount} / ${waitingMaxSeats} players present`;
     waitingSeats.innerHTML= buildSeatsHtml(waitingPlayerName, waitingPlayerCount, waitingMaxSeats);
 
     // De logica om de game te laten starten
@@ -229,7 +229,7 @@ createTableButton.addEventListener('click', async () => {
     const newTable = await createFetchResponse.json();
     currentWaitingTableId = newTable.id;
     const createSeatedCount = newTable.seatedPlayers ? newTable.seatedPlayers.length : 1;
-    showTableWaiting(createUser?.username ||'Speler', createSeatedCount, createMaxSeats, newTable.id);
+    showTableWaiting(createUser?.username ||'', createSeatedCount, createMaxSeats, newTable.id);
 });
 
 document.addEventListener('DOMContentLoaded', () => {
