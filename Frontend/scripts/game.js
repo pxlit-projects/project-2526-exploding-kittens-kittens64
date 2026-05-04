@@ -233,7 +233,7 @@ function renderStatus(game) {
   const isMyTurn = PLAYER_ID && game.playerToPlayId === PLAYER_ID;
   setStatus(isMyTurn
     ? "⭐ It is your turn!"
-    : `Beurt van ${current?.name ?? "…"}`
+    : `Turn of ${current?.name ?? "…"}`
   );
 }
 
@@ -307,7 +307,7 @@ function renderOpponents(game) {
     div.className = "opponent";
     div.innerHTML = `
       <h3>${p.name} ${p.eliminated ? "💀" : isActive ? "⭐" : ""}</h3>
-      <p>${count} kaart${count !== 1 ? "en" : ""}</p>
+      <p>${count} card${count !== 1 ? "s" : ""}</p>
       <div style="display:flex;gap:4px;justify-content:center;flex-wrap:wrap;margin-top:6px;">
         ${"<div style='width:28px;height:40px;background:#4a3a1a;border-radius:4px;'></div>"
             .repeat(Math.min(count, 10))}
