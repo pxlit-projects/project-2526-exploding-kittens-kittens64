@@ -117,14 +117,14 @@ let pollInterval = null;
 
 // Boot 
 if (!TABLE_ID) {
-  setStatus("Geen tableId in de URL. Gebruik: game.html?tableId=...&playerId=...");
+  setStatus("Found no table ID.");
 } else {
   pollTable();
 }
 
 // poll table until full, then poll for gameId
 function pollTable() {
-  setStatus("Wachten tot alle plaatsen aan tafel zijn ingenomen…");
+  setStatus("Wait until the table is full.");
 
   pollInterval = setInterval(async () => {
     try {
@@ -142,14 +142,14 @@ function pollTable() {
         }
       }
     } catch (e) {
-      setStatus(`Fout bij ophalen tafel: ${e.message}`);
+      setStatus(`error: ${e.message}`);
     }
   }, 2000);
 }
 
 // once table is full, poll for gameId
 function pollTableForGameId() {
-  setStatus("Tafel vol — spel wordt aangemaakt…");
+  setStatus("Table is full! Starting game soon.");
   pollInterval = setInterval(async () => {
     try {
       const table = await apiFetch(`/Tables/${TABLE_ID}`);
@@ -273,7 +273,7 @@ function renderMyCards(game) {
 
   const me = (game.players ?? []).find(p => p.cardsInHand && p.cardsInHand.length > 0);;
   if (!me) {
-    el.innerHTML = "<p>Speler niet gevonden (controleer playerId in de URL).</p>";
+    el.innerHTML = "<p>Player not found.</p>";
     return;
   }
   if (me.eliminated) {
@@ -283,7 +283,7 @@ function renderMyCards(game) {
 
   const hand = me.cardsInHand ?? [];
   if (hand.length === 0) {
-    el.innerHTML = "<p>Geen kaarten zichtbaar.</p>";
+    el.innerHTML = "<p>Cards are not visible.</p>";
     return;
   }
 
