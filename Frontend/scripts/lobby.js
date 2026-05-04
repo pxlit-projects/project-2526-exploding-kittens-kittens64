@@ -85,14 +85,14 @@ function displayTables(tablesToShow) {
 function showTableWaiting(playerName, currentPlayers, maxPlayers, tableId) {
     tableList.style.display = 'none';
     waitingMessage.style.display  = 'block';
-    waitingSubtitle.textContent= `${currentPlayers} / ${maxPlayers} spelers aanwezig`;
+    waitingSubtitle.textContent= `${currentPlayers} / ${maxPlayers} Players present`;
     waitingSeats.innerHTML  = buildSeatsHtml(playerName, currentPlayers, maxPlayers);
 
     const oldLeaveButton= waitingMessage.querySelector('.leave-button');
     if (oldLeaveButton) oldLeaveButton.remove();
 
     waitingMessage.innerHTML += `<button class="buttonTable-secondary leave-button" onclick="leaveTable('${tableId}')">
-    Verlaat Tafel</button>`;
+    Leave Table</button>`;
 }
 
 // updateWaitingRoom(table) -> wanneer een speler leaved of joined update deze functie
