@@ -5,7 +5,7 @@
 const API_BASE    = "https://localhost:5051/api";
 const IMAGES_BASE = "images/cards";
 
-// ── Card enum (exact values from C# backend) ──────────────────
+// Card enum (exact values from C# backend) 
 const Card = {
   ExplodingKitten:    0,
   Defuse:             1,
@@ -22,10 +22,10 @@ const Card = {
   TacoCat:            104,
 };
 
-// Reverse lookup: integer → name
+// Reverse lookup: integer  name
 const CARD_NAME = Object.fromEntries(Object.entries(Card).map(([k, v]) => [v, k]));
 
-// ── Card image variants ───────────────────────────────────────
+// Card image variants 
 const CARD_IMAGES = {
   ExplodingKitten: [
     "Exploding-Kitten-Warp-Core.jpg",
@@ -110,7 +110,7 @@ const CARD_LABEL = {
   TacoCat:            "Tacocat",
 };
 
-// ── URL params ────────────────────────────────────────────────
+// URL params 
 // Usage: game.html?tableId=<guid>&playerId=<guid>
 const params    = new URLSearchParams(window.location.search);
 const TABLE_ID  = params.get("tableId");
@@ -118,14 +118,14 @@ const PLAYER_ID = params.get("playerId");
 
 let pollInterval = null;
 
-// ── Boot ──────────────────────────────────────────────────────
+// Boot 
 if (!TABLE_ID) {
   setStatus("Geen tableId in de URL. Gebruik: game.html?tableId=...&playerId=...");
 } else {
   pollTable();
 }
 
-// ── Phase 1: poll table until hasAvailableSeat === false ──────
+// Phase 1: poll table until hasAvailableSeat === false 
 function pollTable() {
   setStatus("Wachten tot alle plaatsen aan tafel zijn ingenomen…");
 
@@ -167,7 +167,7 @@ function pollTableForGameId() {
   }, 2000);
 }
 
-// ── Phase 2: load + poll game every 2s ───────────────────────
+// Phase 2: load + poll game every 2s 
 async function startGamePolling(gameId) {
   try {
     const game = await apiFetch(`/Games/${gameId}`);
@@ -191,14 +191,16 @@ async function startGamePolling(gameId) {
   }, 2000);
 }
 
-// ── API ───────────────────────────────────────────────────────
+// API 
 async function apiFetch(path) {
-  const res = await fetch(`${API_BASE}${path}`);
-  if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-  return res.json();
+    const res = await fetch(`${API_BASE}${path}`, {
+        headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` }
+    });
+    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+    return res.json();
 }
 
-// ── Render: waiting ───────────────────────────────────────────
+// Render: waiting
 function renderTableWaiting(table) {
   const seated   = table.seatedPlayers ?? [];
   const capacity = table.preferences?.numberOfPlayers ?? "?";
@@ -215,7 +217,7 @@ function renderTableWaiting(table) {
   });
 }
 
-// ── Render: game ──────────────────────────────────────────────
+// Render: game ───────
 function renderGame(game) {
   renderStatus(game);
   renderDrawPile(game);
@@ -272,7 +274,7 @@ function renderMyCards(game) {
   if (!el) return;
   el.innerHTML = "";
 
-  const me = (game.players ?? []).find(p => p.id === PLAYER_ID);
+  const me = (game.players ?? []).find(p => p.cardsInHand && p.cardsInHand.length > 0);;
   if (!me) {
     el.innerHTML = "<p>Speler niet gevonden (controleer playerId in de URL).</p>";
     return;
@@ -318,7 +320,7 @@ function renderOpponents(game) {
   });
 }
 
-// ── Card element (with real image) ────────────────────────────
+// Card element (with real image) ─
 function makeCardEl(name, slotIndex) {
   const div = document.createElement("div");
   div.className = "card";
@@ -347,7 +349,7 @@ function makeCardEl(name, slotIndex) {
   return div;
 }
 
-// ── Status helper ─────────────────────────────────────────────
+// Status helper ──────
 function setStatus(msg) {
   const el = document.getElementById("status");
   if (el) el.innerHTML = `<p>${msg}</p>`;
