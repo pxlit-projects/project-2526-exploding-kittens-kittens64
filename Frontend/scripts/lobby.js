@@ -160,7 +160,7 @@ async function joinTable(tableId) {
 
     const joinedTable= await joinFetchResponse.json();
     currentWaitingTableId  = joinedTable.id;
-    const joinPlayerName= getUserFromToken()?.username || 'Speler';
+    const joinPlayerName= getUserFromToken()?.username || '';
     const joinSeatedCount = joinedTable.seatedPlayers ? joinedTable.seatedPlayers.length : 1;
     const joinMaxSeats  = joinedTable.preferences?.numberOfPlayers || 0;
 
