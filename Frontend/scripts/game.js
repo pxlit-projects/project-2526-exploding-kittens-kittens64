@@ -1,6 +1,4 @@
-// ============================================================
-// Exploding Kittens — game.js
-// ============================================================
+
 
 const API_BASE    = "https://localhost:5051/api";
 const IMAGES_BASE = "images/cards";
@@ -22,7 +20,7 @@ const Card = {
   TacoCat:            104,
 };
 
-// Reverse lookup: integer  name
+
 const CARD_NAME = Object.fromEntries(Object.entries(Card).map(([k, v]) => [v, k]));
 
 // Card image variants 
@@ -93,7 +91,7 @@ function cardImageUrl(name, slotIndex) {
   return `${IMAGES_BASE}/${file}`;
 }
 
-// Human-readable label
+// readable label
 const CARD_LABEL = {
   ExplodingKitten:    "Exploding Kitten",
   Defuse:             "Defuse",
@@ -110,8 +108,7 @@ const CARD_LABEL = {
   TacoCat:            "Tacocat",
 };
 
-// URL params 
-// Usage: game.html?tableId=<guid>&playerId=<guid>
+// URL
 const params    = new URLSearchParams(window.location.search);
 const TABLE_ID  = params.get("tableId");
 const PLAYER_ID = params.get("playerId");
@@ -125,7 +122,7 @@ if (!TABLE_ID) {
   pollTable();
 }
 
-// Phase 1: poll table until hasAvailableSeat === false 
+// poll table until full, then poll for gameId
 function pollTable() {
   setStatus("Wachten tot alle plaatsen aan tafel zijn ingenomen…");
 
@@ -150,7 +147,7 @@ function pollTable() {
   }, 2000);
 }
 
-// Phase 1b: table full but gameId not set yet
+// once table is full, poll for gameId
 function pollTableForGameId() {
   setStatus("Tafel vol — spel wordt aangemaakt…");
   pollInterval = setInterval(async () => {
@@ -167,7 +164,7 @@ function pollTableForGameId() {
   }, 2000);
 }
 
-// Phase 2: load + poll game every 2s 
+// load + poll game every 2 seconds
 async function startGamePolling(gameId) {
   try {
     const game = await apiFetch(`/Games/${gameId}`);
@@ -217,7 +214,7 @@ function renderTableWaiting(table) {
   });
 }
 
-// Render: game ───────
+// Render: game
 function renderGame(game) {
   renderStatus(game);
   renderDrawPile(game);
@@ -320,7 +317,7 @@ function renderOpponents(game) {
   });
 }
 
-// Card element (with real image) ─
+// Card element
 function makeCardEl(name, slotIndex) {
   const div = document.createElement("div");
   div.className = "card";
@@ -349,7 +346,7 @@ function makeCardEl(name, slotIndex) {
   return div;
 }
 
-// Status helper ──────
+// Status helper
 function setStatus(msg) {
   const el = document.getElementById("status");
   if (el) el.innerHTML = `<p>${msg}</p>`;
