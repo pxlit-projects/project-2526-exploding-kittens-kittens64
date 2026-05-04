@@ -159,7 +159,7 @@ function pollTableForGameId() {
         await startGamePolling(table.gameId);
       }
     } catch (e) {
-      setStatus(`Wachten op spel-id: ${e.message}`);
+      setStatus(`Waiting for game ID: ${e.message}`);
     }
   }, 2000);
 }
@@ -183,7 +183,7 @@ async function startGamePolling(gameId) {
         pollInterval = null;
       }
     } catch (e) {
-      console.warn("Poll fout:", e.message);
+      console.warn("Poll error:", e.message);
     }
   }, 2000);
 }
@@ -226,7 +226,7 @@ function renderGame(game) {
 function renderStatus(game) {
   if (game.hasEnded) {
     const winner = (game.players ?? []).find(p => !p.eliminated);
-    setStatus(`🎉 ${winner?.name ?? "Iemand"} heeft gewonnen!`);
+    setStatus(`🎉 ${winner?.name ?? "Someone"} Has won!`);
     return;
   }
   const current  = (game.players ?? []).find(p => p.id === game.playerToPlayId);
@@ -239,7 +239,7 @@ function renderStatus(game) {
 
 function renderDrawPile(game) {
   const el = document.getElementById("drawPile");
-  if (el) el.textContent = `${game.drawPileCount ?? "?"} kaarten`;
+  if (el) el.textContent = `${game.drawPileCount ?? "?"} Cards`;
 }
 
 function renderDiscardPile(game) {
@@ -248,7 +248,7 @@ function renderDiscardPile(game) {
 
   const pile = game.discardPile ?? [];
   if (pile.length === 0) {
-    el.innerHTML      = "Leeg";
+    el.innerHTML      = "Empty";
     el.style.padding  = "";
     return;
   }
@@ -277,7 +277,7 @@ function renderMyCards(game) {
     return;
   }
   if (me.eliminated) {
-    el.innerHTML = `<p style="color:#c0392b;font-weight:bold;">Je bent geëlimineerd 💀</p>`;
+    el.innerHTML = `<p style="color:#c0392b;font-weight:bold;">You are eliminated 💀</p>`;
     return;
   }
 
