@@ -3,9 +3,10 @@ using ExplodingKittens.Core.GameAggregate.Contracts;
 
 namespace ExplodingKittens.Core.ActionAggregate;
 
-internal class StealSpecificCardAction
+internal class StealSpecificCardAction : ActionBase
 {
-    public StealSpecificCardAction(IGame game, Guid playerId, IReadOnlyList<Card> cards, Card targetCard, Guid targetPlayerId)
-    {
-    }
+    public StealSpecificCardAction(IGame game, Guid playerId, IReadOnlyList<Card> cards, bool canBeNoped, Card? targetCard, Guid? targetPlayerId, int? drawPileIndex)
+        : base(game, playerId, cards, canBeNoped, targetCard, targetPlayerId, drawPileIndex) { }
+
+    public override void Execute() { }
 }
