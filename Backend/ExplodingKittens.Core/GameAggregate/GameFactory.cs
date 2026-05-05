@@ -21,12 +21,12 @@ internal class GameFactory : IGameFactory
     public IGame CreateNewForTable(ITable table)
     {
         var players = table.SeatedPlayers.ToArray();
-        var gameId = Guid.NewGuid();
-
         var drawPile = _cardDeckFactory.CreateStandardDeckWithoutExplodingKittens(players.Length);
 
+        // First shuffle
         drawPile.Shuffle();
 
+        // Deal cards: 1 Defuse + 7 random cards = 8 total per player
         foreach (var player in players)
         {
             player.Hand.InsertCard(Card.Defuse);
@@ -37,33 +37,33 @@ internal class GameFactory : IGameFactory
             }
         }
 
+        // Card removal for 3 or fewer players
         if (players.Length <= 3)
         {
             int removeCount = drawPile.CardCount / 3;
-
             for (int i = 0; i < removeCount; i++)
             {
                 drawPile.DrawTopCard();
             }
         }
 
-        int kittens = players.Length - 1;
-
-        for (int i = 0; i < kittens; i++)
+        // Add Exploding Kittens (Number of players - 1)
+        int kittensToAdd = players.Length - 1;
+        for (int i = 0; i < kittensToAdd; i++)
         {
             drawPile.InsertCard(Card.ExplodingKitten, 0);
         }
 
+        // Second shuffle
         drawPile.Shuffle();
 
+        // Youngest player starts
         var youngestPlayer = players
             .OrderByDescending(p => p.BirthDate)
             .First();
 
-        var startingPlayerId = youngestPlayer.Id;
-
         return new Game(
-            gameId,
+            Guid.NewGuid(),
             players,
             drawPile,
             youngestPlayer.Id,
