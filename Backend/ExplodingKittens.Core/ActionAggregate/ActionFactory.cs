@@ -27,7 +27,7 @@ internal class ActionFactory : IActionFactory
             };
         }
 
-        // Handle combinations (must be identical cards)
+        // Combination thing
         if (cards.Distinct().Count() > 1)
         {
             throw new InvalidOperationException("Invalid card combination played.");

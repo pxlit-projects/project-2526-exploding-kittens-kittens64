@@ -62,14 +62,14 @@ internal class Game : IGame
         {
             if (player.Hand.Contains(Card.Defuse))
             {
-                // Player must play Defuse, handled by PlayAction later
+
                 player.Hand.InsertCard(card);
             }
             else
             {
-                // Player is eliminated
+                // Player is eliminated (rip)
                 player.Hand.InsertCard(card);
-                // Advance turn will handle moving to next player
+
                 PendingDraws = 0;
                 AdvanceTurn();
             }
