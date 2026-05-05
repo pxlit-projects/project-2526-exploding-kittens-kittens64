@@ -101,7 +101,7 @@ function showTableWaiting(playerName, currentPlayers, maxPlayers, tableId) {
 function updateWaitingRoom(table) {
     const waitingPlayerCount = table.seatedPlayers.length;
     const waitingMaxSeats= table.preferences?.numberOfPlayers;
-    const waitingPlayerName = getUserFromToken()?.username || '';
+    const waitingPlayerName = getUserFromToken()?.username || ' ';
 
     waitingSubtitle.textContent = `${waitingPlayerCount} / ${waitingMaxSeats} players present`;
     waitingSeats.innerHTML= buildSeatsHtml(waitingPlayerName, waitingPlayerCount, waitingMaxSeats);
