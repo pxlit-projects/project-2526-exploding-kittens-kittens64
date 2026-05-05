@@ -5,8 +5,28 @@ namespace ExplodingKittens.Core.ActionAggregate;
 
 internal class FavorAction : ActionBase
 {
-    public FavorAction(IGame game, Guid playerId, IReadOnlyList<Card> cards, bool canBeNoped, Card? targetCard, Guid? targetPlayerId, int? drawPileIndex)
-        : base(game, playerId, cards, canBeNoped, targetCard, targetPlayerId, drawPileIndex) { }
+    public FavorAction(IGame game, Guid playerId, Guid targetPlayerId)
+        : this(game, playerId, new List<Card> { Card.Favor }, targetPlayerId)
+    {
+    }
 
-    public override void Execute() { }
+    public FavorAction(IGame game, Guid playerId, IReadOnlyList<Card> cards, Guid targetPlayerId)
+        : base(game, playerId, cards, true, null, targetPlayerId)
+    {
+    }
+
+    protected override void Execute()
+    {
+        if (TargetCard.HasValue && TargetPlayerId.HasValue)
+        {
+            var targetPlayer = Game.GetPlayerById(TargetPlayerId.Value);
+            var initiator = Game.GetPlayerById(PlayerId);
+            
+            var card = targetPlayer.Hand.PickSpecificCard(TargetCard.Value);
+            if (card.HasValue)
+            {
+                initiator.Hand.InsertCard(card.Value);
+            }
+        }
+    }
 }

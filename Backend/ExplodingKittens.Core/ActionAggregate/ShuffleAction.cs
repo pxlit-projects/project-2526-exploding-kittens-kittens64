@@ -5,8 +5,13 @@ namespace ExplodingKittens.Core.ActionAggregate;
 
 internal class ShuffleAction : ActionBase
 {
-    public ShuffleAction(IGame game, Guid playerId, IReadOnlyList<Card> cards, bool canBeNoped)
-        : base(game, playerId, cards, canBeNoped) { }
+    public ShuffleAction(IGame game, Guid playerId, IReadOnlyList<Card> cards)
+        : base(game, playerId, cards, true)
+    {
+    }
 
-    public override void Execute() { }
+    protected override void Execute()
+    {
+        Game.DrawPile.Shuffle();
+    }
 }
