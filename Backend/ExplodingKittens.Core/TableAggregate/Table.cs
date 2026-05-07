@@ -45,7 +45,7 @@ internal class Table : ITable
             throw new InvalidOperationException("You're already seated on this table");
 
         }
-        _seatedPlayers.Add(new HumanPlayer(user.Id, user.UserName, user.BirthDate));
+        _seatedPlayers.Add(new HumanPlayer(user.Id, user.UserName ?? "Unknown", user.BirthDate));
    
     }
     
@@ -53,15 +53,7 @@ internal class Table : ITable
    
     public void Leave(Guid userId)
     {
-        IPlayer player = null;
-        foreach (var seatedPlayer in _seatedPlayers)
-        {
-            if (seatedPlayer.Id == userId)
-            {
-                player = seatedPlayer;
-                break;
-            }
-        }
+        var player = _seatedPlayers.FirstOrDefault(p => p.Id == userId);
         if (player == null)
         {
             throw new InvalidOperationException("Speler niet gevonden in de Table ");

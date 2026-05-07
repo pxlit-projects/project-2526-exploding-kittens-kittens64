@@ -1,11 +1,12 @@
+using ExplodingKittens.Core.CardAggregate;
 using ExplodingKittens.Core.GameAggregate.Contracts;
 
 namespace ExplodingKittens.Core.ActionAggregate;
 
-/// <summary>End your turn without drawing a card.</summary>
-internal class SkipAction
+internal class SkipAction : ActionBase
 {
-    public SkipAction(IGame game, Guid playerId)
-    {
-    }
+    public SkipAction(IGame game, Guid playerId, IReadOnlyList<Card> cards, bool canBeNoped)
+        : base(game, playerId, cards, canBeNoped) { }
+
+    public override void Execute() { }
 }

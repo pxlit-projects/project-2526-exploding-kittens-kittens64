@@ -82,7 +82,7 @@ public interface IGame
     /// </param>
     /// <param name="targetCard">An optional card to target with the action. If null, no specific card is targeted.</param>
     /// <param name="drawPileIndex">
-    /// An optional index indicating the position in the draw pile where the <see cref="targetCard"/> can be inserted.
+    /// An optional index indicating the position in the draw pile where a card can be inserted.
     /// If null, no card will be inserted into the draw pile.
     /// </param>
     /// <exception cref="InvalidOperationException">
