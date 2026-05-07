@@ -1,36 +1,41 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="./css/game.css">
     <title>Document</title>
 </head>
+
 <body>
-    <h1>Exploding Kittens</h1>
-    <div id="status">
-        <h2>Game ongoing</h2>
-    </div>
-
-    <div id="piles">
-        <div class="draw">
-            <h2>Draw</h2>
-            <div id="drawPile"></div>
+    <main>
+        <h1>Exploding Kittens</h1>
+        <div id="status">
+            <h2>Game ongoing</h2>
         </div>
-        <div class="play">
-            <h2>Play</h2>
-            <div id="playPile"></div>
+        
+        <h2>Opponents</h2>
+        <div id="opponents">
         </div>
-    </div>  
 
-    <h2>My Cards</h2>
-    <div id="myCards">
-    </div>
+        <div id="piles">
+            <div class="draw">
+                <h2>Draw</h2>
+                <div id="drawPile"></div>
+            </div>
+            <div class="play">
+                <h2>Play</h2>
+                <div id="playPile"></div>
+            </div>
+        </div>
 
-    <h2>Opponents</h2>
-    <div id="opponents">
-    </div>
+        <div id="myCards">
+        </div>
+
+    </main>
 
     <script src="scripts/game.js"></script>
 </body>
+
 </html>

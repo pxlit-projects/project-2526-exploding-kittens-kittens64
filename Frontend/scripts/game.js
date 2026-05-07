@@ -255,14 +255,14 @@ function renderDiscardPile(game) {
 
   const pile = game.discardPile ?? [];
   if (pile.length === 0) {
-    el.innerHTML     = "Empty";
-    el.style.padding = "";
+    el.innerHTML      = "Empty";
+    el.style.padding  = "";
     return;
   }
 
-  const topInt = pile[pile.length - 1];
-  const name   = CARD_NAME[topInt] ?? "?";
-  const imgUrl = cardImageUrl(name, pile.length);
+  const topInt  = pile[pile.length - 1];
+  const name    = CARD_NAME[topInt] ?? "?";
+  const imgUrl  = cardImageUrl(name, pile.length);
 
   if (imgUrl) {
     el.innerHTML     = `<img src="${imgUrl}" alt="${CARD_LABEL[name] ?? name}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">`;
@@ -608,14 +608,17 @@ function makeCardEl(name, slotIndex, isSelected = false, canSelect = false) {
     div.style.padding    = "0";
     div.style.overflow   = "hidden";
     div.style.background = "#2a1a00";
-    div.innerHTML = `<img src="${imgUrl}" alt="${CARD_LABEL[name] ?? name}" style="width:100%;height:100%;object-fit:cover;display:block;">`;
+    div.innerHTML = `
+      <img src="${imgUrl}" alt="${CARD_LABEL[name] ?? name}"
+        style="width:100%;height:100%;object-fit:cover;display:block;">
+    `;
   } else {
     div.style.background    = "#4a3a1a";
-    div.style.color         = "#fff";
+    div.style.color= "#fff";
     div.style.flexDirection = "column";
-    div.style.fontSize      = "13px";
-    div.style.textAlign     = "center";
-    div.style.padding       = "8px";
+    div.style.fontSize = "13px";
+    div.style.textAlign = "center";
+    div.style.padding = "8px";
     div.textContent = CARD_LABEL[name] ?? name;
   }
 

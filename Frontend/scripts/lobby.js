@@ -91,8 +91,11 @@ function showTableWaiting(playerName, currentPlayers, maxPlayers, tableId) {
     const oldLeaveButton= waitingMessage.querySelector('.leave-button');
     if (oldLeaveButton) oldLeaveButton.remove();
 
-    waitingMessage.innerHTML += `<button class="buttonTable-secondary leave-button" onclick="leaveTable('${tableId}')">
-    Leave Table</button>`;
+    const leaveBtn = document.createElement('button');
+    leaveBtn.className = 'buttonTable-secondary leave-button';
+    leaveBtn.textContent = 'Verlaat Tafel';
+    leaveBtn.onclick = () => leaveTable(tableId);
+    waitingMessage.appendChild(leaveBtn);
 }
 
 // updateWaitingRoom(table) -> wanneer een speler leaved of joined update deze functie
@@ -186,7 +189,7 @@ async function leaveTable(tableId) {
     await refreshTableList();
 }
 
-//  Event listeners 
+
 
 totalPlayersSlider.addEventListener('input', () => {
     playerCountLabel.textContent = totalPlayersSlider.value;
