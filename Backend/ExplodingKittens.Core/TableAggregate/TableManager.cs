@@ -1,6 +1,7 @@
 ﻿using ExplodingKittens.Core.GameAggregate.Contracts;
 using ExplodingKittens.Core.TableAggregate.Contracts;
 using ExplodingKittens.Core.UserAggregate;
+using System.Reflection.Emit;
 
 namespace ExplodingKittens.Core.TableAggregate;
 
@@ -26,22 +27,54 @@ internal class TableManager : ITableManager
 
     public ITable CreateTable(User user, ITablePreferences preferences)
     {
-        // ITable table = _tableFactory.CreateNewForUser(user, preferences); 
-        throw new NotImplementedException();
+        
+        ITable table = _tableFactory.CreateNewForUser(user, preferences);
+        _tableRepository.Add(table);
+        return table;
     }
 
     public ITable JoinTable(Guid tableId, User user)
     {
-        throw new NotImplementedException();
+        ITable currentTable = _tableRepository.Get(tableId);
+        currentTable.Join(user);
+
+      
+        _tableRepository.Add(currentTable);
+
+        return currentTable;
     }
 
     public void LeaveTable(Guid tableId, User user)
     {
-        throw new NotImplementedException();
+        ITable currentTable = _tableRepository.Get(tableId);
+        currentTable.Leave(user.Id);
+
+        if(currentTable.SeatedPlayers.Count == 0)
+        {
+            _tableRepository.Remove(tableId);
+            // verwijdert van het lijst tables die in 
+            // de tableRepository zitten
+        }
     }
 
     public IGame StartGameForTable(Guid tableId)
     {
-        throw new NotImplementedException();
+        var table = _tableRepository.Get(tableId);
+
+        if (table.SeatedPlayers.Count < 2)
+        {
+            throw new InvalidOperationException("not enough players");
+        }
+
+        var game = _gameFactory.CreateNewForTable(table);
+
+        table.GameId = game.Id;
+
+        _gameRepository.Add(game);
+
+        _tableRepository.Remove(tableId);
+        _tableRepository.Add(table);
+
+        return game;
     }
 }

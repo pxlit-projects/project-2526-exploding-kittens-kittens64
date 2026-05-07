@@ -1,0 +1,98 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+}
+
+main {
+    font-family: Arial, sans-serif;
+    background-image: url("../images/game_img/game_BackGround.jpg");
+    color: #2a1a00;
+    padding: 20px;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #2a1a00;
+}
+
+h2,
+h3 {
+    margin-top: 30px;
+    border-bottom: 2px solid #4a3a1a;
+    padding-bottom: 5px;
+}
+
+#status,
+#myCards,
+#opponents,
+#piles {
+    background: #e4cf91;
+    padding: 15px;
+    border-radius: 10px;
+    margin-top: 10px;
+    min-height: 50px;
+
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.card {
+    width: 150px;
+    height: 200px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    border: 3px solid black;
+    margin-right: -110px;
+}
+
+.card:hover {
+    bottom: 0px;
+    margin-right: 10px;
+}
+
+#opponents {
+    justify-content: space-between;
+}
+
+.opponent {
+    background: #e4cf91;
+    padding: 10px;
+    border-radius: 8px;
+    min-width: 120px;
+    text-align: center;
+}
+
+#status {
+    justify-content: center;
+    font-weight: bold;
+    color: #7a5a2a;
+}
+
+#piles {
+    justify-content: space-around;
+}
+
+.draw,
+.play {
+    text-align: center;
+}
+
+#drawPile,
+#playPile {
+    width: 120px;
+    height: 160px;
+    background: #d1be84;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(74, 58, 26, 0.4);
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    font-weight: bold;
+}
