@@ -186,7 +186,7 @@ async function leaveTable(tableId) {
     await refreshTableList();
 }
 
-//  Event listeners 
+
 
 totalPlayersSlider.addEventListener('input', () => {
     playerCountLabel.textContent = totalPlayersSlider.value;
