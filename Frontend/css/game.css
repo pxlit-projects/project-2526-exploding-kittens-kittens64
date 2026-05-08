@@ -4,8 +4,13 @@
 }
 
 main {
+    width: 100vw;
+    height: 100%;
     font-family: Arial, sans-serif;
     background-image: url("../images/game_img/game_BackGround.jpg");
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
     color: #2a1a00;
     padding: 20px;
 }
@@ -16,23 +21,47 @@ h1 {
     color: #2a1a00;
 }
 
-h2,
-h3 {
-    margin-top: 30px;
-    border-bottom: 2px solid #4a3a1a;
-    padding-bottom: 5px;
+
+
+#status {
+    background: #e4cf91;
+    padding: 15px;
+    border-radius: 10px;
+    margin-top: 10px;
+    min-height: 50px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
 }
 
-#status,
-#myCards,
-#opponents,
+#myCards {
+    background: #e4cf91;
+    padding: 15px;
+    border-radius: 10px;
+    margin-top: 10px;
+    min-height: 50px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+#opponents {
+
+    padding: 15px;
+    border-radius: 10px;
+    margin-top: 10px;
+    min-height: 50px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
 #piles {
     background: #e4cf91;
     padding: 15px;
     border-radius: 10px;
     margin-top: 10px;
     min-height: 50px;
-
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
@@ -60,11 +89,64 @@ h3 {
 }
 
 .opponent {
-    background: #e4cf91;
-    padding: 10px;
-    border-radius: 8px;
-    min-width: 120px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 200px;
+    height: 200px;
+
+}
+
+#opponent_name {
+    margin: 0;
+    position: absolute;
+    color: white;
+    font-size: 2.5rem;
     text-align: center;
+    left: 0;
+    right: 0;
+}
+
+#opponent_img {
+    width: 80%;
+    height: 80%;
+    object-fit: contain;
+}
+
+.opponents_cards {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 2px;
+    justify-content: center;
+    align-items: flex-end;
+    bottom: 2rem;
+}
+
+.card_counter {
+    position: absolute;
+    top: -30px;
+    left: 80%;
+    transform: translateX(-50%);
+    background: #4a3a1a;
+    color: #e4cf91;
+    font-weight: bold;
+    font-size: 20px;
+    padding: 2px 8px;
+    border-radius: 12px;
+}
+
+#opponents_card {
+    width: 28px;
+    height: 40px;
+    border-radius: 4px;
+}
+
+#opponents_card img {
+    width: 28px;
+    height: 40px;
 }
 
 #status {

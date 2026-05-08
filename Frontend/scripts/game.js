@@ -1,21 +1,21 @@
-const API_BASE    = "https://localhost:5051/api";
+const API_BASE = "https://localhost:5051/api";
 const IMAGES_BASE = "images/cards";
 
 // Card enum (exact values from C# backend)
 const Card = {
-  ExplodingKitten:    0,
-  Defuse:             1,
-  Skip:               2,
-  Attack:             3,
-  Favor:              4,
-  Shuffle:            5,
-  SeeTheFuture:       6,
-  Nope:               7,
-  BeardCat:           100,
-  Cattermelon:        101,
-  HairyPotatoCat:     102,
+  ExplodingKitten: 0,
+  Defuse: 1,
+  Skip: 2,
+  Attack: 3,
+  Favor: 4,
+  Shuffle: 5,
+  SeeTheFuture: 6,
+  Nope: 7,
+  BeardCat: 100,
+  Cattermelon: 101,
+  HairyPotatoCat: 102,
   RainbowRalphingCat: 103,
-  TacoCat:            104,
+  TacoCat: 104,
 };
 
 const CARD_NAME = Object.fromEntries(Object.entries(Card).map(([k, v]) => [v, k]));
@@ -72,11 +72,11 @@ const CARD_IMAGES = {
     "Nope-A-Jackanope-Bounds-into-the-Room.jpg",
     "Nope-Feed-your-Opponent-a-Nope-Sandwich.jpg",
   ],
-  BeardCat:           ["Beard-Cat.jpg"],
-  Cattermelon:        ["Cattermelon.jpg"],
-  HairyPotatoCat:     ["Hairy-Potato-Cat.jpg"],
+  BeardCat: ["Beard-Cat.jpg"],
+  Cattermelon: ["Cattermelon.jpg"],
+  HairyPotatoCat: ["Hairy-Potato-Cat.jpg"],
   RainbowRalphingCat: ["Rainbow-Ralphing-Cat.jpg"],
-  TacoCat:            ["Tacocat.jpg"],
+  TacoCat: ["Tacocat.jpg"],
 };
 
 function cardImageUrl(name, slotIndex) {
@@ -87,30 +87,30 @@ function cardImageUrl(name, slotIndex) {
 }
 
 const CARD_LABEL = {
-  ExplodingKitten:    "Exploding Kitten",
-  Defuse:             "Defuse",
-  Skip:               "Skip",
-  Attack:             "Attack",
-  Favor:              "Favor",
-  Shuffle:            "Shuffle",
-  SeeTheFuture:       "See the Future",
-  Nope:               "Nope",
-  BeardCat:           "Beard Cat",
-  Cattermelon:        "Cattermelon",
-  HairyPotatoCat:     "Hairy Potato Cat",
+  ExplodingKitten: "Exploding Kitten",
+  Defuse: "Defuse",
+  Skip: "Skip",
+  Attack: "Attack",
+  Favor: "Favor",
+  Shuffle: "Shuffle",
+  SeeTheFuture: "See the Future",
+  Nope: "Nope",
+  BeardCat: "Beard Cat",
+  Cattermelon: "Cattermelon",
+  HairyPotatoCat: "Hairy Potato Cat",
   RainbowRalphingCat: "Rainbow Ralphing Cat",
-  TacoCat:            "Tacocat",
+  TacoCat: "Tacocat",
 };
 
 const CAT_CARDS = new Set([Card.BeardCat, Card.Cattermelon, Card.HairyPotatoCat, Card.RainbowRalphingCat, Card.TacoCat]);
 const NON_PLAYABLE = new Set([Card.ExplodingKitten, Card.Nope, Card.Defuse]);
 
-const params    = new URLSearchParams(window.location.search);
-const TABLE_ID  = params.get("tableId");
+const params = new URLSearchParams(window.location.search);
+const TABLE_ID = params.get("tableId");
 const PLAYER_ID = params.get("playerId");
 
-let pollInterval  = null;
-let currentGame   = null;
+let pollInterval = null;
+let currentGame = null;
 // selectedCards: array of { cardInt, slotIndex }
 let selectedCards = [];
 
@@ -205,7 +205,7 @@ async function apiFetch(path, options = {}) {
 
 
 function renderTableWaiting(table) {
-  const seated   = table.seatedPlayers ?? [];
+  const seated = table.seatedPlayers ?? [];
   const capacity = table.preferences?.numberOfPlayers ?? "?";
   setStatus(`Wachten op spelers… ${seated.length} / ${capacity} aanwezig`);
 
@@ -236,7 +236,7 @@ function renderStatus(game) {
     setStatus(`🎉 ${winner?.name ?? "Someone"} Has won!`);
     return;
   }
-  const current  = (game.players ?? []).find(p => p.id === game.playerToPlayId);
+  const current = (game.players ?? []).find(p => p.id === game.playerToPlayId);
   const isMyTurn = PLAYER_ID && game.playerToPlayId === PLAYER_ID;
   setStatus(isMyTurn
     ? "⭐ It is your turn!"
@@ -255,17 +255,17 @@ function renderDiscardPile(game) {
 
   const pile = game.discardPile ?? [];
   if (pile.length === 0) {
-    el.innerHTML      = "Empty";
-    el.style.padding  = "";
+    el.innerHTML = "Empty";
+    el.style.padding = "";
     return;
   }
 
-  const topInt  = pile[pile.length - 1];
-  const name    = CARD_NAME[topInt] ?? "?";
-  const imgUrl  = cardImageUrl(name, pile.length);
+  const topInt = pile[pile.length - 1];
+  const name = CARD_NAME[topInt] ?? "?";
+  const imgUrl = cardImageUrl(name, pile.length);
 
   if (imgUrl) {
-    el.innerHTML     = `<img src="${imgUrl}" alt="${CARD_LABEL[name] ?? name}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">`;
+    el.innerHTML = `<img src="${imgUrl}" alt="${CARD_LABEL[name] ?? name}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">`;
     el.style.padding = "0";
   } else {
     el.textContent = CARD_LABEL[name] ?? name;
@@ -286,9 +286,9 @@ function renderMyCards(game) {
   if (hand.length === 0) { el.innerHTML = "<p>Cards are not visible.</p>"; return; }
 
   hand.forEach((cardInt, i) => {
-    const name       = CARD_NAME[cardInt] ?? "?";
+    const name = CARD_NAME[cardInt] ?? "?";
     const isSelected = selectedCards.some(s => s.slotIndex === i);
-    const canSelect  = isMyTurn && !NON_PLAYABLE.has(cardInt);
+    const canSelect = isMyTurn && !NON_PLAYABLE.has(cardInt);
 
     const div = makeCardEl(name, i, isSelected, canSelect);
 
@@ -308,16 +308,28 @@ function renderOpponents(game) {
 
   const opponents = (game.players ?? []).filter(p => p.id !== PLAYER_ID);
   opponents.forEach(p => {
-    const count    = p.cardsInHandCount ?? 0;
+    const count = p.cardsInHandCount ?? 0;
     const isActive = p.id === game.playerToPlayId;
 
     const div = document.createElement("div");
     div.className = "opponent";
+    // div.innerHTML = `
+    //   <h3>${p.name} ${p.eliminated ? "💀" : isActive ? "⭐" : ""}</h3>
+    //   <p>${count} card${count !== 1 ? "s" : ""}</p>
+    //   <div style="display:flex;gap:4px;justify-content:center;flex-wrap:wrap;margin-top:6px;">
+    //     ${"<div style='width:28px;height:40px;background:#4a3a1a;border-radius:4px;'></div>".repeat(Math.min(count, 10))}
+    //   </div>
+    // `;
+
+    
     div.innerHTML = `
-      <h3>${p.name} ${p.eliminated ? "💀" : isActive ? "⭐" : ""}</h3>
-      <p>${count} card${count !== 1 ? "s" : ""}</p>
-      <div style="display:flex;gap:4px;justify-content:center;flex-wrap:wrap;margin-top:6px;">
-        ${"<div style='width:28px;height:40px;background:#4a3a1a;border-radius:4px;'></div>".repeat(Math.min(count, 10))}
+      <div class="opponent">
+          <h3 id="opponent_name">${p.name}</h3>
+        <img id="avatar_img" src="images/avatars/avatar-1.png" alt="opponent-img">
+        <div class="opponents_cards">
+              <span class="card_counter">${count}</span>
+          ${"<div id='opponents_card'> <img src='images/game_img/deckCard.png' alt='op_card'> </div>".repeat(Math.min(count, 5))}
+        </div>
       </div>
     `;
     el.appendChild(div);
@@ -555,10 +567,10 @@ function toggleCardSelection(cardInt, slotIndex, game) {
   } else {
     // Validate the addition makes sense before adding
     const newSelection = [...selectedCards, { cardInt, slotIndex }];
-    const allSameCard  = newSelection.every(s => s.cardInt === newSelection[0].cardInt);
-    const allCat       = newSelection.every(s => CAT_CARDS.has(s.cardInt));
-    const hasAction    = newSelection.some(s => !CAT_CARDS.has(s.cardInt) && !NON_PLAYABLE.has(s.cardInt));
-    const hasCat       = newSelection.some(s => CAT_CARDS.has(s.cardInt));
+    const allSameCard = newSelection.every(s => s.cardInt === newSelection[0].cardInt);
+    const allCat = newSelection.every(s => CAT_CARDS.has(s.cardInt));
+    const hasAction = newSelection.some(s => !CAT_CARDS.has(s.cardInt) && !NON_PLAYABLE.has(s.cardInt));
+    const hasCat = newSelection.some(s => CAT_CARDS.has(s.cardInt));
 
     // Single action card is always fine
     // Multiple cards: must all be the same cat card, max 3
@@ -591,13 +603,13 @@ function showPlayError(msg) {
 function makeCardEl(name, slotIndex, isSelected = false, canSelect = false) {
   const div = document.createElement("div");
   div.className = "card";
-  div.title     = CARD_LABEL[name] ?? name;
+  div.title = CARD_LABEL[name] ?? name;
 
   if (isSelected) {
-    div.style.outline      = "3px solid #e67e22";
-    div.style.transform    = "translateY(-8px)";
-    div.style.boxShadow    = "0 4px 16px rgba(230,126,34,0.6)";
-    div.style.transition   = "transform 0.15s,box-shadow 0.15s";
+    div.style.outline = "3px solid #e67e22";
+    div.style.transform = "translateY(-8px)";
+    div.style.boxShadow = "0 4px 16px rgba(230,126,34,0.6)";
+    div.style.transition = "transform 0.15s,box-shadow 0.15s";
   }
   if (canSelect && !isSelected) {
     div.style.transition = "transform 0.15s";
@@ -605,16 +617,16 @@ function makeCardEl(name, slotIndex, isSelected = false, canSelect = false) {
 
   const imgUrl = cardImageUrl(name, slotIndex);
   if (imgUrl) {
-    div.style.padding    = "0";
-    div.style.overflow   = "hidden";
+    div.style.padding = "0";
+    div.style.overflow = "hidden";
     div.style.background = "#2a1a00";
     div.innerHTML = `
       <img src="${imgUrl}" alt="${CARD_LABEL[name] ?? name}"
         style="width:100%;height:100%;object-fit:cover;display:block;">
     `;
   } else {
-    div.style.background    = "#4a3a1a";
-    div.style.color= "#fff";
+    div.style.background = "#4a3a1a";
+    div.style.color = "#fff";
     div.style.flexDirection = "column";
     div.style.fontSize = "13px";
     div.style.textAlign = "center";
