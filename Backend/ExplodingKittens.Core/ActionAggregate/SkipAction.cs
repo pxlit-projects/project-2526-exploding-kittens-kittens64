@@ -5,8 +5,15 @@ namespace ExplodingKittens.Core.ActionAggregate;
 
 internal class SkipAction : ActionBase
 {
-    public SkipAction(IGame game, Guid playerId, IReadOnlyList<Card> cards, bool canBeNoped)
-        : base(game, playerId, cards, canBeNoped) { }
+    public SkipAction(IGame game, Guid playerId, IReadOnlyList<Card> cards)
+        : base(game, playerId, cards, true)
+    {
+    }
 
-    public override void Execute() { }
+    protected override void Execute()
+    {
+        Game.PendingDraws--;
+        if (Game.PendingDraws < 0) Game.PendingDraws = 0;
+        Game.AdvanceTurn();
+    }
 }

@@ -62,14 +62,14 @@ internal class Game : IGame
         {
             if (player.Hand.Contains(Card.Defuse))
             {
-                // Player must play Defuse, handled by PlayAction later
+
                 player.Hand.InsertCard(card);
             }
             else
             {
-                // Player is eliminated
+                // Player is eliminated (rip)
                 player.Hand.InsertCard(card);
-                // Advance turn will handle moving to next player
+
                 PendingDraws = 0;
                 AdvanceTurn();
             }
@@ -99,7 +99,6 @@ internal class Game : IGame
         {
             // Note: tests currently don't setup hands before playing, so we skip the check for now
             player.Hand.PickSpecificCard(card);
-            // if (picked == null) throw new InvalidOperationException($"Player doesn't have card {card}.");
             DiscardPile.Add(card);
         }
 

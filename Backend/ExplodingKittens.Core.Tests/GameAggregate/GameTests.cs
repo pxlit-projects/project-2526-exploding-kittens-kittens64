@@ -276,12 +276,11 @@ public class GameTests
     {
         Class_ShouldImplement_IGame();
 
-        // Arrange
+
         _actionFactoryMockBuilder.WithCreateReturnsUnexecutedAction(Card.SeeTheFuture);
         IReadOnlyList<Card> cards = [Card.SeeTheFuture];
         _game.PlayAction(_player1.Id, cards, null, null, null);
 
-        // Act + Assert
         Assert.That(() => _game.SelectCardToGiveAsAFavor(_player2.Id, Card.RainbowRalphingCat),
             Throws.InvalidOperationException.With.Message.ContainsOne("cadeau", "favor", "geschenk"));
     }
@@ -291,16 +290,16 @@ public class GameTests
     {
         Class_ShouldImplement_IGame();
 
-        // Arrange
+
         IAction favorAction = new FavorAction(_game, _player1.Id, _player2.Id) as IAction;
         _actionFactoryMockBuilder.WithCreateReturnsUnexecutedAction(favorAction);
         IReadOnlyList<Card> cards = [Card.Favor];
         _game.PlayAction(_player1.Id, cards, _player2.Id, null, null);
 
-        // Act
+
         _game.SelectCardToGiveAsAFavor(_player2.Id, Card.RainbowRalphingCat);
 
-        // Assert
+
         Assert.That(_game.PendingAction, Is.Not.Null, "There should be a pending action.");
         Assert.That(_game.PendingAction.TargetCard, Is.EqualTo(Card.RainbowRalphingCat),
             "The target card of the pending action should be set to the selected card to give as a favor.");
@@ -311,10 +310,10 @@ public class GameTests
     {
         Class_ShouldImplement_IGame();
 
-        // Arrange
+
         _game.PendingDraws = 1;
 
-        // Act + Assert
+
         Assert.That(() => _game.AdvanceTurn(),
             Throws.InvalidOperationException.With.Message.ContainsOne("draw", "trekken"));
     }
@@ -324,17 +323,15 @@ public class GameTests
     {
         Class_ShouldImplement_IGame();
 
-        // Arrange
         _game.PendingDraws = 0;
         List<Card> player1FutureCards = [Card.ExplodingKitten, Card.Attack, Card.BeardCat];
         _player1MockBuilder.WithFutureCards(player1FutureCards);
         List<Card> player2FutureCards = [Random.Shared.NextCard(), Random.Shared.NextCard(), Random.Shared.NextCard()];
         _player2MockBuilder.WithFutureCards(player2FutureCards);
 
-        // Act
         _game.AdvanceTurn();
 
-        // Assert
+
         _player1MockBuilder.Mock.VerifySet(p => p.FutureCards = It.Is<List<Card>>(list => list.Count == 0), Times.Once,
             "FutureCards should be cleared for player 1.");
         _player2MockBuilder.Mock.VerifySet(p => p.FutureCards = It.Is<List<Card>>(list => list.Count == 0), Times.Once,
@@ -346,7 +343,6 @@ public class GameTests
     {
         Class_ShouldImplement_IGame();
 
-        // Arrange
         Mock<IPlayer> player3Mock = new PlayerMockBuilder().WithName("PlayerC").Mock;
         IPlayer player3 = player3Mock.Object;
         IPlayer[] players = [_player1MockBuilder.Object, _player2MockBuilder.Object, player3];
@@ -357,10 +353,9 @@ public class GameTests
         _game.PendingDraws = 0;
         _player2MockBuilder.WithEliminated(true);
 
-        // Act
+
         _game.AdvanceTurn();
 
-        // Assert
         Assert.That(_game.PlayerToPlayId, Is.EqualTo(player3.Id),
             "Turn should advance to the next non-eliminated player.");
         Assert.That(_game.PendingDraws, Is.EqualTo(1), "PendingDraws should be reset to 1.");
@@ -371,11 +366,11 @@ public class GameTests
     {
         Class_ShouldImplement_IGame();
 
-        // Arrange
+
         _player1MockBuilder.WithEliminated(false);
         _player2MockBuilder.WithEliminated(false);
 
-        // Act + Assert
+
         Assert.That(_game.HasEnded, Is.False, "Game should not have ended when multiple players are not eliminated.");
     }
 
@@ -384,12 +379,11 @@ public class GameTests
     {
         Class_ShouldImplement_IGame();
 
-        // Arrange
+
         var player1IsEliminated = Random.Shared.NextBool();
         _player1MockBuilder.WithEliminated(player1IsEliminated);
         _player2MockBuilder.WithEliminated(!player1IsEliminated);
 
-        // Act + Assert
         Assert.That(_game.HasEnded, Is.True, "Game should have ended when only one player is not eliminated.");
     }
 }

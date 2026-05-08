@@ -5,8 +5,17 @@ namespace ExplodingKittens.Core.ActionAggregate;
 
 internal class DefuseAction : ActionBase
 {
-    public DefuseAction(IGame game, Guid playerId, IReadOnlyList<Card> cards, bool canBeNoped, Card? targetCard, Guid? targetPlayerId, int? drawPileIndex)
-        : base(game, playerId, cards, canBeNoped, targetCard, targetPlayerId, drawPileIndex) { }
+    public DefuseAction(IGame game, Guid playerId, IReadOnlyList<Card> cards, int drawPileIndex)
+        : base(game, playerId, cards, false, Card.ExplodingKitten, null, drawPileIndex)
+    {
+    }
 
-    public override void Execute() { }
+    protected override void Execute()
+    {
+        if (TargetCard == Card.ExplodingKitten && DrawPileIndex.HasValue)
+        {
+            Game.DrawPile.InsertCard(Card.ExplodingKitten, DrawPileIndex.Value);
+            Game.AdvanceTurn();
+        }
+    }
 }

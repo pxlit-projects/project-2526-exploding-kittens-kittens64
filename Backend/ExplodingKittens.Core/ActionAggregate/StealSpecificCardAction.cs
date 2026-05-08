@@ -5,8 +5,22 @@ namespace ExplodingKittens.Core.ActionAggregate;
 
 internal class StealSpecificCardAction : ActionBase
 {
-    public StealSpecificCardAction(IGame game, Guid playerId, IReadOnlyList<Card> cards, bool canBeNoped, Card? targetCard, Guid? targetPlayerId, int? drawPileIndex)
-        : base(game, playerId, cards, canBeNoped, targetCard, targetPlayerId, drawPileIndex) { }
+    public StealSpecificCardAction(IGame game, Guid playerId, IReadOnlyList<Card> cards, Card targetCard, Guid targetPlayerId)
+        : base(game, playerId, cards, true, targetCard, targetPlayerId)
+    {
+    }
 
-    public override void Execute() { }
+    protected override void Execute()
+    {
+        if (TargetPlayerId.HasValue && TargetCard.HasValue)
+        {
+            var targetPlayer = Game.GetPlayerById(TargetPlayerId.Value);
+            var initiator = Game.GetPlayerById(PlayerId);
+            var card = targetPlayer.Hand.PickSpecificCard(TargetCard.Value);
+            if (card.HasValue)
+            {
+                initiator.Hand.InsertCard(card.Value);
+            }
+        }
+    }
 }
