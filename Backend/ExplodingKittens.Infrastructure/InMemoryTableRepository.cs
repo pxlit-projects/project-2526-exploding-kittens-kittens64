@@ -20,7 +20,7 @@ internal class InMemoryTableRepository : ITableRepository
         _instanceCount++;
        
 
-        _tableDictionary = new ExpiringDictionary<Guid, ITable>(TimeSpan.FromMinutes(15));
+        _tableDictionary = new ExpiringDictionary<Guid, ITable>(TimeSpan.FromMinutes(60));
 
     
     }
