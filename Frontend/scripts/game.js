@@ -228,6 +228,7 @@ function renderGame(game) {
   renderOpponents(game);
   renderActionPanel(game);
   renderNopePanel(game);
+  renderMyPlayer(game);
 }
 
 function renderStatus(game) {
@@ -246,7 +247,16 @@ function renderStatus(game) {
 
 function renderDrawPile(game) {
   const el = document.getElementById("drawPile");
-  if (el) el.textContent = `${game.drawPileCount ?? "?"} Cards`;
+  let cardCount;
+  if (game.drawPileCount) {
+    cardCount = game.drawPileCount;
+  } else {
+    cardCount = "?";
+  }
+  el.innerHTML = `
+    <img class="deck_img" src="images/game_img/deck_img.png" alt="">
+    <h3>${cardCount} cards left</h3>
+  `;
 }
 
 function renderDiscardPile(game) {
@@ -265,7 +275,7 @@ function renderDiscardPile(game) {
   const imgUrl = cardImageUrl(name, pile.length);
 
   if (imgUrl) {
-    el.innerHTML = `<img src="${imgUrl}" alt="${CARD_LABEL[name] ?? name}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">`;
+    el.innerHTML = `<img src="${imgUrl}" alt="${CARD_LABEL[name] ?? name}" style="width:100%;height:100%;object-fit:fill;border-radius:8px;">`;
     el.style.padding = "0";
   } else {
     el.textContent = CARD_LABEL[name] ?? name;
@@ -309,42 +319,61 @@ function renderOpponents(game) {
   const opponents = (game.players ?? []).filter(p => p.id !== PLAYER_ID);
   opponents.forEach(p => {
     const count = p.cardsInHandCount ?? 0;
-    const isActive = p.id === game.playerToPlayId;
 
-    const div = document.createElement("div");
-    div.className = "opponent";
-    // div.innerHTML = `
+    let opponentTurn = "";
+    if (p.id === game.playerToPlayId) {
+      opponentTurn = "opponentTurn";
+    }
+    // dit nog moet je toevogen eliminated ???
     //   <h3>${p.name} ${p.eliminated ? "💀" : isActive ? "⭐" : ""}</h3>
-    //   <p>${count} card${count !== 1 ? "s" : ""}</p>
-    //   <div style="display:flex;gap:4px;justify-content:center;flex-wrap:wrap;margin-top:6px;">
-    //     ${"<div style='width:28px;height:40px;background:#4a3a1a;border-radius:4px;'></div>".repeat(Math.min(count, 10))}
-    //   </div>
-    // `;
 
-    
-    div.innerHTML = `
-      <div class="opponent">
-          <h3 id="opponent_name">${p.name}</h3>
-        <img id="avatar_img" src="images/avatars/avatar-1.png" alt="opponent-img">
+    el.innerHTML += `
+      <div class="opponent ${opponentTurn}">
+          <h3 class="opponent_name">${p.name}</h3>
+        <img class="avatar_img" src="images/avatars/avatar-1.png" alt="opponent-img">
         <div class="opponents_cards">
               <span class="card_counter">${count}</span>
-          ${"<div id='opponents_card'> <img src='images/game_img/deckCard.png' alt='op_card'> </div>".repeat(Math.min(count, 5))}
+          ${"<div id='opponents_card'> <img src='images/game_img/deck_img.png' alt='op_card'> </div>".repeat(Math.min(count, 5))}
         </div>
       </div>
     `;
-    el.appendChild(div);
   });
+}
+
+// render Myplayer
+
+function renderMyPlayer(game) {
+  const el = document.getElementById("myPlayer");
+  if (!el) {
+    return
+  }
+
+  let me;
+  const players = game.players;
+  for (let i = 0; i < players.length; i++) {
+    if (players[i].id === PLAYER_ID) {
+      me = players[i];
+      break;
+    }
+  }
+
+  let myTurn = "";
+  if (game.playerToPlayId === PLAYER_ID) {
+    myTurn = "opponentTurn";
+  }
+  el.innerHTML = `
+    <div class="opponent ${myTurn}">
+      <h3 class="opponent_name">${me.name}</h3>
+      <img class="avatar_img" src="images/avatars/avatar-1.png" alt="my-avatar">
+    </div>
+  `;
 }
 
 
 function renderActionPanel(game) {
   let panel = document.getElementById("actionPanel");
   if (!panel) {
-    panel = document.createElement("div");
-    panel.id = "actionPanel";
-    panel.style.cssText = "margin:10px 0;padding:15px;background:#e4cf91;border-radius:10px;color:#2a1a00;display:flex;flex-wrap:wrap;gap:8px;align-items:center;min-height:50px;";
-    const myCardsSection = document.getElementById("myCards");
-    myCardsSection?.parentNode?.insertBefore(panel, myCardsSection.nextSibling);
+   return
   }
 
   panel.innerHTML = "";
@@ -490,11 +519,7 @@ async function playSelectedCards(game) {
 function renderNopePanel(game) {
   let panel = document.getElementById("nopePanel");
   if (!panel) {
-    panel = document.createElement("div");
-    panel.id = "nopePanel";
-    panel.style.cssText = "margin:10px 0;padding:15px;background:#e4cf91;border-radius:10px;color:#2a1a00;display:flex;flex-wrap:wrap;gap:8px;align-items:center;min-height:50px;border:2px solid #4a3a1a;";
-    const actionPanel = document.getElementById("actionPanel");
-    actionPanel?.parentNode?.insertBefore(panel, actionPanel.nextSibling);
+    return
   }
 
   panel.innerHTML = "";
