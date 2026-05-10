@@ -14,7 +14,13 @@ internal class DefuseAction : ActionBase
     {
         if (TargetCard == Card.ExplodingKitten && DrawPileIndex.HasValue)
         {
+            var player = Game.GetPlayerById(PlayerId);
+            // verwijdert exploding kitten van de hand
+            player.Hand.PickSpecificCard(Card.ExplodingKitten);
+
+            // je steekt terug in de draw pile, de positie van de kaart beslis jezelf
             Game.DrawPile.InsertCard(Card.ExplodingKitten, DrawPileIndex.Value);
+
             Game.AdvanceTurn();
         }
     }

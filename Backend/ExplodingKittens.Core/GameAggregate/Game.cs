@@ -55,6 +55,8 @@ internal class Game : IGame
         if (_pendingAction != null && !_pendingAction.IsExecuted)
             throw new InvalidOperationException("There is a pending action.");
 
+        _pendingAction = null;
+
         var player = GetPlayerById(playerId);
         var card = _drawPile.DrawTopCard();
 
@@ -64,11 +66,13 @@ internal class Game : IGame
             {
 
                 player.Hand.InsertCard(card);
+                PendingDraws--;
             }
             else
             {
                 // Player is eliminated (rip)
-                player.Hand.InsertCard(card);
+               player.Hand.InsertCard(card);
+               (player as PlayerAggregate.PlayerBase)!.Eliminated = true;
 
                 PendingDraws = 0;
                 AdvanceTurn();
@@ -102,6 +106,7 @@ internal class Game : IGame
             DiscardPile.Add(card);
         }
 
+        _pendingAction = null;
         _pendingAction = _actionFactory.Create(this, playerId, cards, targetPlayerId, targetCard, drawPileIndex);
 
         // If the action cannot be noped, execute it immediately
@@ -142,6 +147,7 @@ internal class Game : IGame
             throw new InvalidOperationException("The pending action is not a Favor action.");
 
         _pendingAction.TargetCard = card;
+        _pendingAction.ConfirmNotNoping(playerId);
     }
 
     public void AdvanceTurn()
@@ -161,6 +167,8 @@ internal class Game : IGame
         int nextIndex = (currentIndex + 1) % activePlayers.Count;
         _currentPlayerId = activePlayers[nextIndex].Id;
         PendingDraws = 1;
-        _pendingAction = null;
+        //_pendingAction = null;  //voorlopig laten, probeer de game integration te fixen
     }
+
 }
+
