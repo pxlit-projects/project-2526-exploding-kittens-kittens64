@@ -1,7 +1,9 @@
 const API_BASE = "https://localhost:5051/api";
-const IMAGES_BASE = "images/cards";
 
-// Card enum (exact values from C# backend)
+
+
+
+// Card enum (exacte waarden van de back-end)
 const Card = {
   ExplodingKitten: 0,
   Defuse: 1,
@@ -18,7 +20,10 @@ const Card = {
   TacoCat: 104,
 };
 
-const CARD_NAME = Object.fromEntries(Object.entries(Card).map(([k, v]) => [v, k]));
+const CARD_NAME = {};
+for (const [name, number] of Object.entries(Card)){
+  CARD_NAME[number] = name;
+}
 
 const CARD_IMAGES = {
   ExplodingKitten: [
@@ -80,10 +85,16 @@ const CARD_IMAGES = {
 };
 
 function cardImageUrl(name, slotIndex) {
-  const variants = CARD_IMAGES[name] ?? [];
-  if (variants.length === 0) return null;
-  const file = variants[slotIndex % variants.length];
-  return `${IMAGES_BASE}/${file}`;
+  const cardType= CARD_IMAGES[name];
+
+  if (!cardType || cardType.length === 0){
+    return null;
+  }
+
+  const imageIndex = slotIndex % cardType.length;
+  const file= cardType[imageIndex];
+
+  return "images/cards/" + file;
 }
 
 const CARD_LABEL = {
@@ -188,7 +199,7 @@ async function startGamePolling(gameId) {
 
 
 async function apiFetch(path, options = {}) {
-  const res = await fetch(`${API_BASE}${path}`, {
+  const response = await fetch(`${API_BASE}${path}`, {
     ...options,
     headers: {
       'Authorization': `Bearer ${sessionStorage.getItem('token')}`,
@@ -196,120 +207,17 @@ async function apiFetch(path, options = {}) {
       ...(options.headers ?? {}),
     },
   });
-  if (!res.ok) {
-    const body = await res.text().catch(() => "");
-    throw new Error(`${res.status} ${res.statusText}${body ? ": " + body : ""}`);
+  if (!response.ok) {
+    const body = await response.text().catch(() => "");
+    throw new Error(`${response.status} ${response.statusText}${body ? ": " + body : ""}`);
   }
-  return res.status === 204 ? null : res.json();
-}
-
-
-function renderTableWaiting(table) {
-  const seated = table.seatedPlayers ?? [];
-  const capacity = table.preferences?.numberOfPlayers ?? "?";
-  setStatus(`Wachten op spelers… ${seated.length} / ${capacity} aanwezig`);
-
-  const el = document.getElementById("opponents");
-  if (!el) return;
-  el.innerHTML = "";
-  seated.forEach(p => {
-    const div = document.createElement("div");
-    div.className = "opponent";
-    div.innerHTML = `<h3>${p.name}</h3><p>Aanwezig ✅</p>`;
-    el.appendChild(div);
-  });
-}
-
-function renderGame(game) {
-  renderStatus(game);
-  renderDrawPile(game);
-  renderDiscardPile(game);
-  renderMyCards(game);
-  renderOpponents(game);
-  renderActionPanel(game);
-  renderNopePanel(game);
-  renderMyPlayer(game);
-}
-
-function renderStatus(game) {
-  if (game.hasEnded) {
-    const winner = (game.players ?? []).find(p => !p.eliminated);
-    setStatus(`🎉 ${winner?.name ?? "Someone"} Has won!`);
-    return;
+  if ( response.status === 204 ) {
+    return null;
   }
-  const current = (game.players ?? []).find(p => p.id === game.playerToPlayId);
-  const isMyTurn = PLAYER_ID && game.playerToPlayId === PLAYER_ID;
-  setStatus(isMyTurn
-    ? "⭐ It is your turn!"
-    : `Turn of ${current?.name ?? "…"}`
-  );
+  return response.json();
 }
 
-function renderDrawPile(game) {
-  const el = document.getElementById("drawPile");
-  let cardCount;
-  if (game.drawPileCount) {
-    cardCount = game.drawPileCount;
-  } else {
-    cardCount = "?";
-  }
-  el.innerHTML = `
-    <img class="deck_img" src="images/game_img/deck_img.png" alt="">
-    <h3>${cardCount} cards left</h3>
-  `;
-}
 
-function renderDiscardPile(game) {
-  const el = document.getElementById("playPile");
-  if (!el) return;
-
-  const pile = game.discardPile ?? [];
-  if (pile.length === 0) {
-    el.innerHTML = "Empty";
-    el.style.padding = "";
-    return;
-  }
-
-  const topInt = pile[pile.length - 1];
-  const name = CARD_NAME[topInt] ?? "?";
-  const imgUrl = cardImageUrl(name, pile.length);
-
-  if (imgUrl) {
-    el.innerHTML = `<img src="${imgUrl}" alt="${CARD_LABEL[name] ?? name}" style="width:100%;height:100%;object-fit:fill;border-radius:8px;">`;
-    el.style.padding = "0";
-  } else {
-    el.textContent = CARD_LABEL[name] ?? name;
-  }
-}
-
-function renderMyCards(game) {
-  const el = document.getElementById("myCards");
-  if (!el) return;
-  el.innerHTML = "";
-
-  const isMyTurn = PLAYER_ID && game.playerToPlayId === PLAYER_ID;
-  const me = (game.players ?? []).find(p => p.cardsInHand && p.cardsInHand.length > 0);
-  if (!me) { el.innerHTML = "<p>Player not found.</p>"; return; }
-  if (me.eliminated) { el.innerHTML = `<p style="color:#c0392b;font-weight:bold;">You are eliminated 💀</p>`; return; }
-
-  const hand = me.cardsInHand ?? [];
-  if (hand.length === 0) { el.innerHTML = "<p>Cards are not visible.</p>"; return; }
-
-  hand.forEach((cardInt, i) => {
-    const name = CARD_NAME[cardInt] ?? "?";
-    const isSelected = selectedCards.some(s => s.slotIndex === i);
-    const canSelect = isMyTurn && !NON_PLAYABLE.has(cardInt);
-
-    const div = makeCardEl(name, i, isSelected, canSelect);
-
-    if (canSelect) {
-      div.style.cursor = "pointer";
-      div.addEventListener("click", () => toggleCardSelection(cardInt, i, game));
-    }
-
-    el.appendChild(div);
-  });
-}
 
 function renderOpponents(game) {
   const el = document.getElementById("opponents");
@@ -325,7 +233,7 @@ function renderOpponents(game) {
       opponentTurn = "opponentTurn";
     }
     // dit nog moet je toevogen eliminated ???
-    //   <h3>${p.name} ${p.eliminated ? "💀" : isActive ? "⭐" : ""}</h3>
+  
 
     el.innerHTML += `
       <div class="opponent ${opponentTurn}">
@@ -340,7 +248,6 @@ function renderOpponents(game) {
   });
 }
 
-// render Myplayer
 
 function renderMyPlayer(game) {
   const el = document.getElementById("myPlayer");
@@ -389,7 +296,7 @@ function renderActionPanel(game) {
   if (selCount === 0) {
     summary.textContent = "Select cards from your hand to play.";
   } else {
-    const names = selectedCards.map(s => CARD_LABEL[CARD_NAME[s.cardInt]] ?? "?");
+    const names = selectedCards.map(select => CARD_LABEL[CARD_NAME[select.cardInt]] ?? "?");
     summary.textContent = `Selected: ${names.join(", ")}`;
   }
   panel.appendChild(summary);
@@ -402,35 +309,35 @@ function renderActionPanel(game) {
   // Target player selector (for Favor / 2-cat / 3-cat combos)
   const needsTarget = needsTargetPlayer(selectedCards, game);
   if (needsTarget) {
-    const sel = document.createElement("select");
-    sel.id = "targetPlayerSelect";
-    sel.style.cssText = "padding:4px 8px;border-radius:6px;border:2px solid #4a3a1a;background:#d1be84;color:#2a1a00;";
+    const selectSection = document.createElement("select");
+    selectSection.id = "targetPlayerSelect";
+    selectSection.style.cssText = "padding:4px 8px;border-radius:6px;border:2px solid #4a3a1a;background:#d1be84;color:#2a1a00;";
     const placeholder = document.createElement("option");
     placeholder.value = "";
     placeholder.textContent = "— Select target player —";
-    sel.appendChild(placeholder);
+    selectSection.appendChild(placeholder);
 
     (game.players ?? [])
-      .filter(p => p.id !== PLAYER_ID && !p.eliminated)
-      .forEach(p => {
-        const opt = document.createElement("option");
-        opt.value = p.id;
-        opt.textContent = p.name;
-        sel.appendChild(opt);
+      .filter(candidate => candidate.id !== PLAYER_ID && !candidate.eliminated)
+      .forEach(opponent => {
+        const optionSection = document.createElement("option");
+        optionSection.value = opponent.id;
+        optionSection.textContent = opponent.name;
+        selectSection.appendChild(optionSection);
       });
-    panel.appendChild(sel);
+    panel.appendChild(selectSection);
   }
 
   // Target card selector (for 3-cat combo: steal specific card)
   const needsTargetCard = selectedCards.length === 3 && selectedCards.every(s => CAT_CARDS.has(s.cardInt));
   if (needsTargetCard) {
-    const sel = document.createElement("select");
-    sel.id = "targetCardSelect";
-    sel.style.cssText = "padding:4px 8px;border-radius:6px;border:2px solid #4a3a1a;background:#d1be84;color:#2a1a00;";
+    const cardSelectSection = document.createElement("select");
+    cardSelectSection.id = "targetCardSelect";
+    cardSelectSection.style.cssText = "padding:4px 8px;border-radius:6px;border:2px solid #4a3a1a;background:#d1be84;color:#2a1a00;";
     const placeholder = document.createElement("option");
     placeholder.value = "";
     placeholder.textContent = "— Select card to steal —";
-    sel.appendChild(placeholder);
+    cardSelectSection.appendChild(placeholder);
 
     Object.entries(CARD_LABEL).forEach(([name, label]) => {
       const cardInt = Card[name];
@@ -438,9 +345,9 @@ function renderActionPanel(game) {
       const opt = document.createElement("option");
       opt.value = cardInt;
       opt.textContent = label;
-      sel.appendChild(opt);
+      cardSelectSection.appendChild(opt);
     });
-    panel.appendChild(sel);
+    panel.appendChild(cardSelectSection);
   }
 
   // Play button
@@ -507,7 +414,7 @@ async function playSelectedCards(game) {
       body: JSON.stringify(body),
     });
     selectedCards = [];
-    // Force immediate refresh
+    // Force immediate refresponseh
     const updated = await apiFetch(`/Games/${game.id}`);
     currentGame = updated;
     renderGame(updated);
