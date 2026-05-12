@@ -246,17 +246,36 @@ function renderStatus(game) {
 }
 
 function renderDrawPile(game) {
-  const el = document.getElementById("drawPile");
-  let cardCount;
-  if (game.drawPileCount) {
-    cardCount = game.drawPileCount;
-  } else {
-    cardCount = "?";
-  }
-  el.innerHTML = `
-    <img class="deck_img" src="images/game_img/deck_img.png" alt="">
-    <h3>${cardCount} cards left</h3>
+  const drawPileElement = document.getElementById("drawPile");
+  if (!drawPileElement) return;
+
+  const isMyTurn = PLAYER_ID && game.playerToPlayId === PLAYER_ID;
+  const cardCount = game.drawPileCount ?? 0;
+
+  // We create a clean HTML structure with classes
+  drawPileElement.innerHTML = `
+    <div class="deck-wrapper">
+      <img class="deck_img" src="images/game_img/deck_img.png" alt="Deck">
+      <div class="deck-count-label">${cardCount} cards left</div>
+    </div>
   `;
+
+  if (isMyTurn) {
+    const drawButton = document.createElement("button");
+    drawButton.textContent = "Draw Card";
+    drawButton.className = "draw-action-btn"; // The CSS will handle the positioning
+
+    drawButton.onclick = () => {
+      if (game.pendingAction) {
+        alert("You must resolve the pending action first!");
+        return;
+      }
+      drawCard();
+    };
+
+    // Find the wrapper we just made and put the button inside
+    drawPileElement.querySelector(".deck-wrapper").appendChild(drawButton);
+  }
 }
 
 function renderDiscardPile(game) {
@@ -665,4 +684,24 @@ function makeCardEl(name, slotIndex, isSelected = false, canSelect = false) {
 function setStatus(msg) {
   const el = document.getElementById("status");
   if (el) el.innerHTML = `<p>${msg}</p>`;
+}
+
+async function drawCard() {
+  if (!currentGame) return;
+
+  try {
+  
+    await apiFetch(`/Games/${currentGame.id}/draw-card`, { 
+      method: "POST" 
+    });
+
+   
+    const updated = await apiFetch(`/Games/${currentGame.id}`);
+    currentGame = updated;
+    renderGame(updated);
+    
+  } catch (error) {
+    
+    alert("Cannot draw card: " + error.message);
+  }
 }
