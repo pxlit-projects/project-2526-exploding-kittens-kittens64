@@ -392,7 +392,7 @@ function renderMyPlayer(game) {
 function renderActionPanel(game) {
   let panel = document.getElementById("actionPanel");
   if (!panel) {
-   return
+    return
   }
 
   panel.innerHTML = "";
@@ -407,13 +407,12 @@ function renderActionPanel(game) {
   summary.style.flex = "1";
   if (selCount === 0) {
     summary.textContent = "Select cards from your hand to play.";
-  } else {
-    const names = selectedCards.map(s => CARD_LABEL[CARD_NAME[s.cardInt]] ?? "?");
-    summary.textContent = `Selected: ${names.join(", ")}`;
+    panel.appendChild(summary);
+    return;
   }
+  const names = selectedCards.map(s => CARD_LABEL[CARD_NAME[s.cardInt]] ?? "?");
+  summary.textContent = `Selected: ${names.join(", ")}`;
   panel.appendChild(summary);
-
-  if (selCount === 0) return;
 
   // Draw pile index input for defuse (not used here since defuse is non-playable via this flow,
   // but kept for completeness in case rules expand)
@@ -496,6 +495,21 @@ async function playSelectedCards(game) {
   if (errEl) errEl.textContent = "";
 
   const cards = selectedCards.map(s => s.cardInt);
+  const allCat = cards.every(c => CAT_CARDS.has(c));
+  const allSame = cards.every(c => c === cards[0]);
+
+  if (allCat && cards.length === 1) {
+    if (errEl) errEl.textContent = "You can't play with only one cat card.";
+    return;
+  }
+  if (cards.length > 1 && (!allCat || !allSame)) {
+    if (errEl) errEl.textContent = "You can only combine identical cat cards.";
+    return;
+  }
+  if (cards.length > 3) {
+    if (errEl) errEl.textContent = "Maximum 3 cat cards can be combined.";
+    return;
+  }
 
   let targetPlayerId = null;
   const targetPlayerSel = document.getElementById("targetPlayerSelect");
@@ -605,44 +619,14 @@ async function sendConfirmNotNoping(gameId) {
 
 function toggleCardSelection(cardInt, slotIndex, game) {
   const existingIdx = selectedCards.findIndex(s => s.slotIndex === slotIndex);
-
   if (existingIdx !== -1) {
     selectedCards.splice(existingIdx, 1);
   } else {
-    // Validate the addition makes sense before adding
-    const newSelection = [...selectedCards, { cardInt, slotIndex }];
-    const allSameCard = newSelection.every(s => s.cardInt === newSelection[0].cardInt);
-    const allCat = newSelection.every(s => CAT_CARDS.has(s.cardInt));
-    const hasAction = newSelection.some(s => !CAT_CARDS.has(s.cardInt) && !NON_PLAYABLE.has(s.cardInt));
-    const hasCat = newSelection.some(s => CAT_CARDS.has(s.cardInt));
-
-    // Single action card is always fine
-    // Multiple cards: must all be the same cat card, max 3
-    if (newSelection.length > 1) {
-      if (!allCat || !allSameCard) {
-        showPlayError("You can only combine identical cat cards.");
-        return;
-      }
-      if (newSelection.length > 3) {
-        showPlayError("Maximum 3 cat cards can be combined.");
-        return;
-      }
-    }
-
     selectedCards.push({ cardInt, slotIndex });
   }
-
   renderMyCards(game);
   renderActionPanel(game);
 }
-
-function showPlayError(msg) {
-  const errEl = document.getElementById("playError");
-  if (errEl) { errEl.textContent = msg; return; }
-  // If panel not rendered yet, just alert
-  alert(msg);
-}
-
 
 function makeCardEl(name, slotIndex, isSelected = false, canSelect = false) {
   const div = document.createElement("div");
