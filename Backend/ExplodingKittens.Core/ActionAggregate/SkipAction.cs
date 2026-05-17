@@ -14,6 +14,9 @@ internal class SkipAction : ActionBase
     {
         Game.PendingDraws--;
         if (Game.PendingDraws < 0) Game.PendingDraws = 0;
-        Game.AdvanceTurn();
+        if (Game.PendingDraws == 0)
+        {
+            Game.AdvanceTurn();
+        }
     }
 }

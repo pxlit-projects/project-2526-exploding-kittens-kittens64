@@ -9,6 +9,8 @@ internal class PlayerBase : IPlayer
     private Guid _id;
     private string _name;
     private DateOnly _birthDate;
+    // private variabelen toegevoegd
+    private bool _eliminated = false;
 
     private readonly IHand _hand;
     private readonly List<Card> _futureCards = new();
@@ -32,7 +34,10 @@ internal class PlayerBase : IPlayer
 
     public bool HasExplodingKitten => _hand.Cards.Contains(Card.ExplodingKitten);
 
-    public bool Eliminated => false;
+    public bool Eliminated {
+        get => _eliminated;
+        set => _eliminated = value;
+    }
 
     public IReadOnlyList<Card> FutureCards
     {
