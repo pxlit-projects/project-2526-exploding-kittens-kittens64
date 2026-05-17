@@ -228,6 +228,7 @@ function renderGame(game) {
   renderOpponents(game);
   renderActionPanel(game);
   renderNopePanel(game);
+  renderGiveCardPanel(game);
 }
 
 function renderStatus(game) {
@@ -546,6 +547,63 @@ async function sendConfirmNotNoping(gameId) {
   }
 }
 
+// Willem Beckers
+
+async function sendGiveCard(gameId, cardInt) {
+  try {
+    await apiFetch(`/Games/${gameId}/select-card-to-give-as-a-favor`, {
+      method: "POST",
+      body: JSON.stringify({ card: cardInt }),
+    });
+    const updater = await apiFetch(`/Games/${gameId}`);
+    currentGame = updater;
+    renderGame(updater);
+  } catch (e) {
+    setStatus(`Error Found: ${e.message}`);
+  }
+}
+
+function renderGiveCardPanel(game) {
+  let panel = document.getElementById("giveCardPanel");
+  if (!panel) {
+    panel = document.createElement("div");
+    panel.id = "giveCardPanel";
+    panel.style.cssText = "margin:10px 0;padding:15px;background:#e4cf91;border-radius:10px;color:#2a1a00;display:flex;flex-wrap:wrap;gap:8px;align-items:center;min-height:50px;border:2px solid #c03424;";
+    const nopePanel = document.getElementById("nopePanel");
+    nopePanel?.parentNode?.insertBefore(panel, nopePanel.nextSibling);
+  }
+
+  panel.innerHTML = "";
+
+  const action = game.pendingAction;
+  if (!action) return panel.innerHTML = "";
+
+
+const isFavor = (action.cards ?? []).some(c => c === Card.Favor);
+
+const isFavor = (action.cards ?? []).find(c => c === Card.Favor) !== undefined;
+
+const isFavor = (action.cards ?? []).indexOf(Card.Favor) !== -1;
+
+  if (!iAmTarget || !isFavor || isNoped) return;
+
+  const actor = (game.players ?? []).find(p => p.id === action.playerId);
+  const me    = (game.players ?? []).find(p => p.id === PLAYER_ID);
+  const hand  = me?.cardsInHand ?? [];
+
+  const info = document.createElement("div");
+  info.style.cssText = "width:100%;margin-bottom:8px;font-weight:bold;";
+  info.textContent = `${actor?.name ?? "Someone"} needs a card from you! pick one you'd like to give:`;
+  panel.appendChild(info);
+
+  hand.forEach((cardInt, i) => {
+    const name = CARD_NAME[cardInt] ?? "?";
+    const div  = makeCardEl(name, i, false, true);
+    div.style.cursor = "pointer";
+    div.addEventListener("click", () => sendGiveCard(game.id, cardInt));
+    panel.appendChild(div);
+  });
+}
 
 function toggleCardSelection(cardInt, slotIndex, game) {
   const existingIdx = selectedCards.findIndex(s => s.slotIndex === slotIndex);
