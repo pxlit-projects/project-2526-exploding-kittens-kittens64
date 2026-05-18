@@ -102,6 +102,28 @@ const CARD_LABEL = {
   TacoCat: "Tacocat",
 };
 
+const CARD_ACTION_DESCRIPTION = {
+  Skip: "Skip — skips the current turn without drawing.",
+  Attack: "Attack — the next player must take two turns.",
+  Favor: "Favor — a card is requested from the target player.",
+  Shuffle: "Shuffle — the draw pile is shuffled.",
+  SeeTheFuture: "See the Future — the top 3 cards of the draw pile are viewed.",
+  BeardCat: "Cat combo — a random card is stolen from the target player.",
+  Cattermelon: "Cat combo — a random card is stolen from the target player.",
+  HairyPotatoCat: "Cat combo — a random card is stolen from the target player.",
+  RainbowRalphingCat: "Cat combo — a random card is stolen from the target player.",
+  TacoCat: "Cat combo — a random card is stolen from the target player.",
+};
+
+function getActionDescription(cards) {
+  if (!cards || cards.length === 0) return "";
+  const allCat = cards.every(c => CAT_CARDS.has(c));
+  if (allCat && cards.length === 3) return "3-cat combo — a specific card is stolen from the target player.";
+  if (allCat && cards.length === 2) return CARD_ACTION_DESCRIPTION["BeardCat"];
+  const name = CARD_NAME[cards[0]];
+  return CARD_ACTION_DESCRIPTION[name] ?? "";
+}
+
 const CAT_CARDS = new Set([Card.BeardCat, Card.Cattermelon, Card.HairyPotatoCat, Card.RainbowRalphingCat, Card.TacoCat]);
 const NON_PLAYABLE = new Set([Card.ExplodingKitten, Card.Nope, Card.Defuse]);
 
@@ -111,8 +133,11 @@ const PLAYER_ID = params.get("playerId");
 
 let pollInterval = null;
 let currentGame = null;
-// selectedCards: array of { cardInt, slotIndex }
 let selectedCards = [];
+
+function hasUnresolvedAction(game) {
+  return !!(game.pendingAction && !game.pendingAction.isExecuted);
+}
 
 // Boot
 if (!TABLE_ID) {
@@ -264,10 +289,15 @@ function renderDrawPile(game) {
   if (isMyTurn) {
     const drawButton = document.createElement("button");
     drawButton.textContent = "Draw Card";
-    drawButton.className = "draw-action-btn"; // The CSS will handle the positioning
+    drawButton.className = "draw-action-btn";
+    const blocked = hasUnresolvedAction(game);
+    drawButton.disabled = blocked;
+    drawButton.title = blocked
+      ? "Resolve the pending action before drawing."
+      : "End your turn by drawing a card.";
 
     drawButton.onclick = () => {
-      if (game.pendingAction) {
+      if (hasUnresolvedAction(game)) {
         alert("You must resolve the pending action first!");
         return;
       }
@@ -308,23 +338,27 @@ function renderMyCards(game) {
   el.innerHTML = "";
 
   const isMyTurn = PLAYER_ID && game.playerToPlayId === PLAYER_ID;
-  const me = (game.players ?? []).find(p => p.cardsInHand && p.cardsInHand.length > 0);
+  const me = (game.players ?? []).find(p => p.id === PLAYER_ID);
+
   if (!me) { el.innerHTML = "<p>Player not found.</p>"; return; }
   if (me.eliminated) { el.innerHTML = `<p style="color:#c0392b;font-weight:bold;">You are eliminated 💀</p>`; return; }
 
   const hand = me.cardsInHand ?? [];
-  if (hand.length === 0) { el.innerHTML = "<p>Cards are not visible.</p>"; return; }
+  if (hand.length === 0) { el.innerHTML = "<p>No cards in hand.</p>"; return; }
 
   hand.forEach((cardInt, i) => {
     const name = CARD_NAME[cardInt] ?? "?";
     const isSelected = selectedCards.some(s => s.slotIndex === i);
-    const canSelect = isMyTurn && !NON_PLAYABLE.has(cardInt);
+    const canSelect = isMyTurn && !NON_PLAYABLE.has(cardInt) && !hasUnresolvedAction(game);
 
     const div = makeCardEl(name, i, isSelected, canSelect);
 
     if (canSelect) {
       div.style.cursor = "pointer";
       div.addEventListener("click", () => toggleCardSelection(cardInt, i, game));
+    } else {
+      div.style.opacity = "0.75";
+      div.style.cursor = "default";
     }
 
     el.appendChild(div);
@@ -360,8 +394,6 @@ function renderOpponents(game) {
   });
 }
 
-// render Myplayer
-
 function renderMyPlayer(game) {
   const el = document.getElementById("myPlayer");
   if (!el) {
@@ -382,7 +414,7 @@ function renderMyPlayer(game) {
     myTurn = "opponentTurn";
   }
   el.innerHTML = `
-    <div class="opponent ${myTurn}">
+    <div class="opponent ${myTurnClass}">
       <h3 class="opponent_name">${me.name}</h3>
       <img class="avatar_img" src="images/avatars/avatar-1.png" alt="my-avatar">
     </div>
@@ -398,27 +430,54 @@ function renderActionPanel(game) {
 
   panel.innerHTML = "";
 
+  const pendingAction = game.pendingAction;
+
+  if (pendingAction && !pendingAction.isExecuted) {
+    const actor = (game.players ?? []).find(p => p.id === pendingAction.playerId);
+    const cardNames = (pendingAction.cards ?? [])
+      .map(c => CARD_LABEL[CARD_NAME[c]] ?? "?")
+      .join(" + ");
+    const actionDesc = getActionDescription(pendingAction.cards ?? []);
+
+    let nopeStatus = "";
+    if (pendingAction.isNoped) {
+      nopeStatus = `<span class="nope-badge nope-active">⛔ NOPED — action is cancelled</span>`;
+    } else if ((pendingAction.nopeCount ?? 0) > 0 && !pendingAction.isNoped) {
+      nopeStatus = `<span class="nope-badge nope-restored">↩️ Counter-noped — action is ACTIVE again</span>`;
+    }
+
+    const banner = document.createElement("div");
+    banner.className = "pending-action-banner";
+    banner.innerHTML = `
+      <div class="pending-action-who">
+        🎴 <strong>${actor?.name ?? "Someone"}</strong> played
+        <strong>${cardNames}</strong>
+      </div>
+      <div class="pending-action-desc">${actionDesc}</div>
+      ${nopeStatus}
+    `;
+    panel.appendChild(banner);
+    return;
+  }
+
+  // Action is executed or there is no pending action — show card selection UI
   const isMyTurn = PLAYER_ID && game.playerToPlayId === PLAYER_ID;
   if (!isMyTurn || game.hasEnded) return;
 
   const selCount = selectedCards.length;
-
-  // Selected summary
   const summary = document.createElement("span");
   summary.style.flex = "1";
+
   if (selCount === 0) {
     summary.textContent = "Select cards from your hand to play.";
     panel.appendChild(summary);
     return;
   }
+
   const names = selectedCards.map(s => CARD_LABEL[CARD_NAME[s.cardInt]] ?? "?");
   summary.textContent = `Selected: ${names.join(", ")}`;
   panel.appendChild(summary);
 
-  // Draw pile index input for defuse (not used here since defuse is non-playable via this flow,
-  // but kept for completeness in case rules expand)
-
-  // Target player selector (for Favor / 2-cat / 3-cat combos)
   const needsTarget = needsTargetPlayer(selectedCards, game);
   if (needsTarget) {
     const sel = document.createElement("select");
@@ -440,7 +499,6 @@ function renderActionPanel(game) {
     panel.appendChild(sel);
   }
 
-  // Target card selector (for 3-cat combo: steal specific card)
   const needsTargetCard = selectedCards.length === 3 && selectedCards.every(s => CAT_CARDS.has(s.cardInt));
   if (needsTargetCard) {
     const sel = document.createElement("select");
@@ -462,21 +520,22 @@ function renderActionPanel(game) {
     panel.appendChild(sel);
   }
 
-  // Play button
   const btn = document.createElement("button");
   btn.textContent = "▶ Play cards";
   btn.style.cssText = "padding:8px 16px;background:#4a3a1a;border:none;border-radius:6px;color:#e4cf91;font-weight:bold;cursor:pointer;";
   btn.addEventListener("click", () => playSelectedCards(game));
   panel.appendChild(btn);
 
-  // Clear selection button
   const clearBtn = document.createElement("button");
   clearBtn.textContent = "✕ Clear";
   clearBtn.style.cssText = "padding:8px 12px;background:#d1be84;border:2px solid #4a3a1a;border-radius:6px;color:#2a1a00;cursor:pointer;";
-  clearBtn.addEventListener("click", () => { selectedCards = []; renderMyCards(game); renderActionPanel(game); });
+  clearBtn.addEventListener("click", () => {
+    selectedCards = [];
+    renderMyCards(game);
+    renderActionPanel(game);
+  });
   panel.appendChild(clearBtn);
 
-  // Error message slot
   const errEl = document.createElement("div");
   errEl.id = "playError";
   errEl.style.cssText = "width:100%;color:#e74c3c;font-size:13px;";
@@ -491,24 +550,25 @@ function needsTargetPlayer(selected, game) {
   return false;
 }
 
+function validateCardCombination(cards) {
+  const allCat = cards.every(c => CAT_CARDS.has(c));
+  const allSame = cards.every(c => c === cards[0]);
+  if (cards.length === 0) return "No cards selected.";
+  if (allCat && cards.length === 1) return "You can't play a single cat card — combine 2 or 3 identical ones.";
+  if (cards.length > 1 && (!allCat || !allSame)) return "You can only combine identical cat cards (2 or 3 of the same).";
+  if (cards.length > 3) return "Maximum 3 cat cards can be combined.";
+  return null;
+}
+
 async function playSelectedCards(game) {
   const errEl = document.getElementById("playError");
   if (errEl) errEl.textContent = "";
 
   const cards = selectedCards.map(s => s.cardInt);
-  const allCat = cards.every(c => CAT_CARDS.has(c));
-  const allSame = cards.every(c => c === cards[0]);
 
-  if (allCat && cards.length === 1) {
-    if (errEl) errEl.textContent = "You can't play with only one cat card.";
-    return;
-  }
-  if (cards.length > 1 && (!allCat || !allSame)) {
-    if (errEl) errEl.textContent = "You can only combine identical cat cards.";
-    return;
-  }
-  if (cards.length > 3) {
-    if (errEl) errEl.textContent = "Maximum 3 cat cards can be combined.";
+  const validationError = validateCardCombination(cards);
+  if (validationError) {
+    if (errEl) errEl.textContent = validationError;
     return;
   }
 
@@ -551,48 +611,76 @@ async function playSelectedCards(game) {
 }
 
 function renderNopePanel(game) {
-  let panel = document.getElementById("nopePanel");
-  if (!panel) {
-    return
-  }
+  const panel = document.getElementById("nopePanel");
+  if (!panel) return;
 
   panel.innerHTML = "";
 
   const action = game.pendingAction;
   if (!action) return;
 
+  if (action.isExecuted) return;
+
+  if (action.canBeNoped === false) return;
+
   const myDecision = action.playerNopeDecisions?.[PLAYER_ID];
-  // undefined means I'm not in the decisions map (= I'm the one who played)
+
   if (myDecision === undefined) return;
 
+  const isActor = action.playerId === PLAYER_ID;
   const isNoped = action.isNoped;
+  const nopeCount = action.nopeCount ?? 0;
 
-  const info = document.createElement("span");
-  info.style.flex = "1";
   const actorName = (game.players ?? []).find(p => p.id === action.playerId)?.name ?? "Someone";
-  const cardNames = (action.cards ?? []).map(c => CARD_LABEL[CARD_NAME[c]] ?? "?").join(", ");
-  info.innerHTML = `<strong>${actorName}</strong> played <strong>${cardNames}</strong>. ${isNoped ? "⛔ Action is noped!" : "Pending…"}`;
+  const cardNames = (action.cards ?? []).map(c => CARD_LABEL[CARD_NAME[c]] ?? "?").join(" + ");
+
+  // Describe the current state of the nope chain
+  let chainMsg = "";
+  if (nopeCount === 0) {
+    chainMsg = "Pending — waiting for players to decide.";
+  } else if (isNoped) {
+    chainMsg = `⛔ Noped ${nopeCount}x — action is <strong>cancelled</strong>.`;
+  } else {
+    chainMsg = `↩️ Counter-noped ${nopeCount}x — original action is <strong>active again</strong>.`;
+  }
+
+  const info = document.createElement("div");
+  info.className = "nope-info";
+  info.innerHTML = `
+    <strong>${actorName}</strong> played <strong>${cardNames}</strong>.<br>
+    <span class="nope-chain-status">${chainMsg}</span>
+  `;
   panel.appendChild(info);
 
-  // Only show buttons if I haven't decided yet
-  if (myDecision === 0 /* NotDecided */) {
-    const me = (game.players ?? []).find(p => p.id === PLAYER_ID);
-    const hasNope = (me?.cardsInHand ?? []).includes(Card.Nope);
-
-    if (hasNope) {
-      const nopeBtn = document.createElement("button");
-      nopeBtn.textContent = "⛔ Nope it!";
-      nopeBtn.style.cssText = "padding:8px 14px;background:#4a3a1a;border:none;border-radius:6px;color:#e4cf91;font-weight:bold;cursor:pointer;";
-      nopeBtn.addEventListener("click", () => sendNope(game.id));
-      panel.appendChild(nopeBtn);
-    }
-
-    const passBtn = document.createElement("button");
-    passBtn.textContent = "✅ Let it pass";
-    passBtn.style.cssText = "padding:8px 14px;background:#d1be84;border:2px solid #4a3a1a;border-radius:6px;color:#2a1a00;cursor:pointer;";
-    passBtn.addEventListener("click", () => sendConfirmNotNoping(game.id));
-    panel.appendChild(passBtn);
+  if (myDecision !== 0) {
+    const decided = document.createElement("div");
+    decided.className = "nope-decided";
+    decided.textContent = myDecision === 1 ? "You played Nope ⛔" : "You confirmed ✅";
+    panel.appendChild(decided);
+    return;
   }
+
+  const me = (game.players ?? []).find(p => p.id === PLAYER_ID);
+  const hasNope = (me?.cardsInHand ?? []).includes(Card.Nope);
+
+  const btnRow = document.createElement("div");
+  btnRow.className = "nope-btn-row";
+
+  if (!isActor && hasNope) {
+    const nopeBtn = document.createElement("button");
+    nopeBtn.textContent = isNoped ? "↩️ Counter-nope it!" : "⛔ Nope it!";
+    nopeBtn.className = "nope-btn";
+    nopeBtn.addEventListener("click", () => sendNope(game.id));
+    btnRow.appendChild(nopeBtn);
+  }
+
+  const passBtn = document.createElement("button");
+  passBtn.textContent = isActor ? "✅ Proceed" : "✅ Let it pass";
+  passBtn.className = "nope-pass-btn";
+  passBtn.addEventListener("click", () => sendConfirmNotNoping(game.id));
+  btnRow.appendChild(passBtn);
+
+  panel.appendChild(btnRow);
 }
 
 async function sendNope(gameId) {
@@ -652,7 +740,7 @@ function renderGiveCardPanel(game) {
   const iAmTarget = action.targetPlayerId === PLAYER_ID;
   const isFavor   = (action.cards ?? []).includes(Card.Favor);
   const isNoped   = action.isNoped;
-
+  
   if (!iAmTarget || !isFavor || isNoped) return;
 
   const actor = (game.players ?? []).find(p => p.id === action.playerId);
@@ -735,11 +823,11 @@ async function drawCard() {
       method: "POST" 
     });
 
-   
+    
     const updated = await apiFetch(`/Games/${currentGame.id}`);
     currentGame = updated;
     renderGame(updated);
-    
+  
   } catch (error) {
     
     alert("Cannot draw card: " + error.message);
