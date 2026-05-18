@@ -123,6 +123,12 @@ internal class Game : IGame
         }
     }
 
+    public void ConfirmNotNopingPendingAction(Guid playerId)
+    {
+        if (_pendingAction == null) throw new InvalidOperationException("No pending action.");
+        _pendingAction.ConfirmNotNoping(playerId);
+    }
+
     public void NopePendingAction(Guid playerId)
     {
         if (_pendingAction == null) throw new InvalidOperationException("No pending action.");
@@ -133,12 +139,6 @@ internal class Game : IGame
 
         DiscardPile.Add(Card.Nope);
         _pendingAction.Nope(playerId);
-    }
-
-    public void ConfirmNotNopingPendingAction(Guid playerId)
-    {
-        if (_pendingAction == null) throw new InvalidOperationException("No pending action.");
-        _pendingAction.ConfirmNotNoping(playerId);
     }
 
     public void SelectCardToGiveAsAFavor(Guid playerId, Card card)
