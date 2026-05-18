@@ -579,11 +579,9 @@ function renderGiveCardPanel(game) {
   if (!action) return panel.innerHTML = "";
 
 
-const isFavor = (action.cards ?? []).some(c => c === Card.Favor);
-
-const isFavor = (action.cards ?? []).find(c => c === Card.Favor) !== undefined;
-
-const isFavor = (action.cards ?? []).indexOf(Card.Favor) !== -1;
+  const iAmTarget = action.targetPlayerId === PLAYER_ID;
+  const isFavor   = (action.cards ?? []).includes(Card.Favor);
+  const isNoped   = action.isNoped;
 
   if (!iAmTarget || !isFavor || isNoped) return;
 
