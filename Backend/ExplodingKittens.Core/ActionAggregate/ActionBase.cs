@@ -50,9 +50,8 @@ internal abstract class ActionBase : IAction
         {
             _playerNopeDecisions[playerId] = NopeDecision.NotDecided;
         }
-        _playerNopeDecisions[PlayerId] = NopeDecision.NotNoping;
-
-        CheckAndExecute();
+       
+     
     }
 
     public void ConfirmNotNoping(Guid notNopingPlayerId)
@@ -67,13 +66,17 @@ internal abstract class ActionBase : IAction
     {
         if (IsExecuted) return;
 
-        bool everyoneDecided = Game.Players.All(p => _playerNopeDecisions[p.Id] != NopeDecision.NotDecided);
+        bool everyoneDecided = Game.Players.All(player => _playerNopeDecisions[player.Id] != NopeDecision.NotDecided);
 
         if (everyoneDecided)
         {
             if (!IsNoped)
             {
+                // als action een taget card nodig heeft, wacht hij
+                if (Cards.Contains(Card.Favor) && !TargetCard.HasValue) return;
+                // NOTE: de lege return waarde dient om de methode te stoppen. (zoals break in python)
                 Execute();
+               
             }
             IsExecuted = true;
         }

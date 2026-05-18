@@ -12,8 +12,10 @@ internal class AttackAction : ActionBase
 
     protected override void Execute()
     {
+        int newPendingDraws = Game.PendingDraws * 2;
         Game.PendingDraws = 0;
-        Game.PendingDraws += 2;
         Game.AdvanceTurn();
+        Game.PendingDraws = newPendingDraws;
+      
     }
 }

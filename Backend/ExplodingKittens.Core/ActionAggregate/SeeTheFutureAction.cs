@@ -12,7 +12,8 @@ internal class SeeTheFutureAction : ActionBase
 
     protected override void Execute()
     {
-        var player = Game.GetPlayerById(PlayerId);
-        player.FutureCards = Game.DrawPile.PeekTopCards(3);
+       var player = Game.GetPlayerById(PlayerId);
+       int cardsToPeek  = Math.Min(3, Game.DrawPile.CardCount);
+       player.FutureCards= Game.DrawPile.PeekTopCards(cardsToPeek);
     }
 }

@@ -1,21 +1,21 @@
-const API_BASE    = "https://localhost:5051/api";
+const API_BASE = "https://localhost:5051/api";
 const IMAGES_BASE = "images/cards";
 
 // Card enum (exact values from C# backend)
 const Card = {
-  ExplodingKitten:    0,
-  Defuse:             1,
-  Skip:               2,
-  Attack:             3,
-  Favor:              4,
-  Shuffle:            5,
-  SeeTheFuture:       6,
-  Nope:               7,
-  BeardCat:           100,
-  Cattermelon:        101,
-  HairyPotatoCat:     102,
+  ExplodingKitten: 0,
+  Defuse: 1,
+  Skip: 2,
+  Attack: 3,
+  Favor: 4,
+  Shuffle: 5,
+  SeeTheFuture: 6,
+  Nope: 7,
+  BeardCat: 100,
+  Cattermelon: 101,
+  HairyPotatoCat: 102,
   RainbowRalphingCat: 103,
-  TacoCat:            104,
+  TacoCat: 104,
 };
 
 const CARD_NAME = Object.fromEntries(Object.entries(Card).map(([k, v]) => [v, k]));
@@ -72,11 +72,11 @@ const CARD_IMAGES = {
     "Nope-A-Jackanope-Bounds-into-the-Room.jpg",
     "Nope-Feed-your-Opponent-a-Nope-Sandwich.jpg",
   ],
-  BeardCat:           ["Beard-Cat.jpg"],
-  Cattermelon:        ["Cattermelon.jpg"],
-  HairyPotatoCat:     ["Hairy-Potato-Cat.jpg"],
+  BeardCat: ["Beard-Cat.jpg"],
+  Cattermelon: ["Cattermelon.jpg"],
+  HairyPotatoCat: ["Hairy-Potato-Cat.jpg"],
   RainbowRalphingCat: ["Rainbow-Ralphing-Cat.jpg"],
-  TacoCat:            ["Tacocat.jpg"],
+  TacoCat: ["Tacocat.jpg"],
 };
 
 function cardImageUrl(name, slotIndex) {
@@ -87,30 +87,30 @@ function cardImageUrl(name, slotIndex) {
 }
 
 const CARD_LABEL = {
-  ExplodingKitten:    "Exploding Kitten",
-  Defuse:             "Defuse",
-  Skip:               "Skip",
-  Attack:             "Attack",
-  Favor:              "Favor",
-  Shuffle:            "Shuffle",
-  SeeTheFuture:       "See the Future",
-  Nope:               "Nope",
-  BeardCat:           "Beard Cat",
-  Cattermelon:        "Cattermelon",
-  HairyPotatoCat:     "Hairy Potato Cat",
+  ExplodingKitten: "Exploding Kitten",
+  Defuse: "Defuse",
+  Skip: "Skip",
+  Attack: "Attack",
+  Favor: "Favor",
+  Shuffle: "Shuffle",
+  SeeTheFuture: "See the Future",
+  Nope: "Nope",
+  BeardCat: "Beard Cat",
+  Cattermelon: "Cattermelon",
+  HairyPotatoCat: "Hairy Potato Cat",
   RainbowRalphingCat: "Rainbow Ralphing Cat",
-  TacoCat:            "Tacocat",
+  TacoCat: "Tacocat",
 };
 
 const CAT_CARDS = new Set([Card.BeardCat, Card.Cattermelon, Card.HairyPotatoCat, Card.RainbowRalphingCat, Card.TacoCat]);
 const NON_PLAYABLE = new Set([Card.ExplodingKitten, Card.Nope, Card.Defuse]);
 
-const params    = new URLSearchParams(window.location.search);
-const TABLE_ID  = params.get("tableId");
+const params = new URLSearchParams(window.location.search);
+const TABLE_ID = params.get("tableId");
 const PLAYER_ID = params.get("playerId");
 
-let pollInterval  = null;
-let currentGame   = null;
+let pollInterval = null;
+let currentGame = null;
 // selectedCards: array of { cardInt, slotIndex }
 let selectedCards = [];
 
@@ -205,7 +205,7 @@ async function apiFetch(path, options = {}) {
 
 
 function renderTableWaiting(table) {
-  const seated   = table.seatedPlayers ?? [];
+  const seated = table.seatedPlayers ?? [];
   const capacity = table.preferences?.numberOfPlayers ?? "?";
   setStatus(`Wachten op spelers… ${seated.length} / ${capacity} aanwezig`);
 
@@ -229,6 +229,7 @@ function renderGame(game) {
   renderActionPanel(game);
   renderNopePanel(game);
   renderGiveCardPanel(game);
+  renderMyPlayer(game);
 }
 
 function renderStatus(game) {
@@ -237,7 +238,7 @@ function renderStatus(game) {
     setStatus(`🎉 ${winner?.name ?? "Someone"} Has won!`);
     return;
   }
-  const current  = (game.players ?? []).find(p => p.id === game.playerToPlayId);
+  const current = (game.players ?? []).find(p => p.id === game.playerToPlayId);
   const isMyTurn = PLAYER_ID && game.playerToPlayId === PLAYER_ID;
   setStatus(isMyTurn
     ? "⭐ It is your turn!"
@@ -246,8 +247,36 @@ function renderStatus(game) {
 }
 
 function renderDrawPile(game) {
-  const el = document.getElementById("drawPile");
-  if (el) el.textContent = `${game.drawPileCount ?? "?"} Cards`;
+  const drawPileElement = document.getElementById("drawPile");
+  if (!drawPileElement) return;
+
+  const isMyTurn = PLAYER_ID && game.playerToPlayId === PLAYER_ID;
+  const cardCount = game.drawPileCount ?? 0;
+
+  // We create a clean HTML structure with classes
+  drawPileElement.innerHTML = `
+    <div class="deck-wrapper">
+      <img class="deck_img" src="images/game_img/deck_img.png" alt="Deck">
+      <div class="deck-count-label">${cardCount} cards left</div>
+    </div>
+  `;
+
+  if (isMyTurn) {
+    const drawButton = document.createElement("button");
+    drawButton.textContent = "Draw Card";
+    drawButton.className = "draw-action-btn"; // The CSS will handle the positioning
+
+    drawButton.onclick = () => {
+      if (game.pendingAction) {
+        alert("You must resolve the pending action first!");
+        return;
+      }
+      drawCard();
+    };
+
+    // Find the wrapper we just made and put the button inside
+    drawPileElement.querySelector(".deck-wrapper").appendChild(drawButton);
+  }
 }
 
 function renderDiscardPile(game) {
@@ -256,17 +285,17 @@ function renderDiscardPile(game) {
 
   const pile = game.discardPile ?? [];
   if (pile.length === 0) {
-    el.innerHTML      = "Empty";
-    el.style.padding  = "";
+    el.innerHTML = "Empty";
+    el.style.padding = "";
     return;
   }
 
-  const topInt  = pile[pile.length - 1];
-  const name    = CARD_NAME[topInt] ?? "?";
-  const imgUrl  = cardImageUrl(name, pile.length);
+  const topInt = pile[pile.length - 1];
+  const name = CARD_NAME[topInt] ?? "?";
+  const imgUrl = cardImageUrl(name, pile.length);
 
   if (imgUrl) {
-    el.innerHTML     = `<img src="${imgUrl}" alt="${CARD_LABEL[name] ?? name}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">`;
+    el.innerHTML = `<img src="${imgUrl}" alt="${CARD_LABEL[name] ?? name}" style="width:100%;height:100%;object-fit:fill;border-radius:8px;">`;
     el.style.padding = "0";
   } else {
     el.textContent = CARD_LABEL[name] ?? name;
@@ -287,9 +316,9 @@ function renderMyCards(game) {
   if (hand.length === 0) { el.innerHTML = "<p>Cards are not visible.</p>"; return; }
 
   hand.forEach((cardInt, i) => {
-    const name       = CARD_NAME[cardInt] ?? "?";
+    const name = CARD_NAME[cardInt] ?? "?";
     const isSelected = selectedCards.some(s => s.slotIndex === i);
-    const canSelect  = isMyTurn && !NON_PLAYABLE.has(cardInt);
+    const canSelect = isMyTurn && !NON_PLAYABLE.has(cardInt);
 
     const div = makeCardEl(name, i, isSelected, canSelect);
 
@@ -309,31 +338,62 @@ function renderOpponents(game) {
 
   const opponents = (game.players ?? []).filter(p => p.id !== PLAYER_ID);
   opponents.forEach(p => {
-    const count    = p.cardsInHandCount ?? 0;
-    const isActive = p.id === game.playerToPlayId;
+    const count = p.cardsInHandCount ?? 0;
 
-    const div = document.createElement("div");
-    div.className = "opponent";
-    div.innerHTML = `
-      <h3>${p.name} ${p.eliminated ? "💀" : isActive ? "⭐" : ""}</h3>
-      <p>${count} card${count !== 1 ? "s" : ""}</p>
-      <div style="display:flex;gap:4px;justify-content:center;flex-wrap:wrap;margin-top:6px;">
-        ${"<div style='width:28px;height:40px;background:#4a3a1a;border-radius:4px;'></div>".repeat(Math.min(count, 10))}
+    let opponentTurn = "";
+    if (p.id === game.playerToPlayId) {
+      opponentTurn = "opponentTurn";
+    }
+    // dit nog moet je toevogen eliminated ???
+    //   <h3>${p.name} ${p.eliminated ? "💀" : isActive ? "⭐" : ""}</h3>
+
+    el.innerHTML += `
+      <div class="opponent ${opponentTurn}">
+          <h3 class="opponent_name">${p.name}</h3>
+        <img class="avatar_img" src="images/avatars/avatar-1.png" alt="opponent-img">
+        <div class="opponents_cards">
+              <span class="card_counter">${count}</span>
+          ${"<div id='opponents_card'> <img src='images/game_img/deck_img.png' alt='op_card'> </div>".repeat(Math.min(count, 5))}
+        </div>
       </div>
     `;
-    el.appendChild(div);
   });
+}
+
+// render Myplayer
+
+function renderMyPlayer(game) {
+  const el = document.getElementById("myPlayer");
+  if (!el) {
+    return
+  }
+
+  let me;
+  const players = game.players;
+  for (let i = 0; i < players.length; i++) {
+    if (players[i].id === PLAYER_ID) {
+      me = players[i];
+      break;
+    }
+  }
+
+  let myTurn = "";
+  if (game.playerToPlayId === PLAYER_ID) {
+    myTurn = "opponentTurn";
+  }
+  el.innerHTML = `
+    <div class="opponent ${myTurn}">
+      <h3 class="opponent_name">${me.name}</h3>
+      <img class="avatar_img" src="images/avatars/avatar-1.png" alt="my-avatar">
+    </div>
+  `;
 }
 
 
 function renderActionPanel(game) {
   let panel = document.getElementById("actionPanel");
   if (!panel) {
-    panel = document.createElement("div");
-    panel.id = "actionPanel";
-    panel.style.cssText = "margin:10px 0;padding:15px;background:#e4cf91;border-radius:10px;color:#2a1a00;display:flex;flex-wrap:wrap;gap:8px;align-items:center;min-height:50px;";
-    const myCardsSection = document.getElementById("myCards");
-    myCardsSection?.parentNode?.insertBefore(panel, myCardsSection.nextSibling);
+    return
   }
 
   panel.innerHTML = "";
@@ -348,13 +408,12 @@ function renderActionPanel(game) {
   summary.style.flex = "1";
   if (selCount === 0) {
     summary.textContent = "Select cards from your hand to play.";
-  } else {
-    const names = selectedCards.map(s => CARD_LABEL[CARD_NAME[s.cardInt]] ?? "?");
-    summary.textContent = `Selected: ${names.join(", ")}`;
+    panel.appendChild(summary);
+    return;
   }
+  const names = selectedCards.map(s => CARD_LABEL[CARD_NAME[s.cardInt]] ?? "?");
+  summary.textContent = `Selected: ${names.join(", ")}`;
   panel.appendChild(summary);
-
-  if (selCount === 0) return;
 
   // Draw pile index input for defuse (not used here since defuse is non-playable via this flow,
   // but kept for completeness in case rules expand)
@@ -437,6 +496,21 @@ async function playSelectedCards(game) {
   if (errEl) errEl.textContent = "";
 
   const cards = selectedCards.map(s => s.cardInt);
+  const allCat = cards.every(c => CAT_CARDS.has(c));
+  const allSame = cards.every(c => c === cards[0]);
+
+  if (allCat && cards.length === 1) {
+    if (errEl) errEl.textContent = "You can't play with only one cat card.";
+    return;
+  }
+  if (cards.length > 1 && (!allCat || !allSame)) {
+    if (errEl) errEl.textContent = "You can only combine identical cat cards.";
+    return;
+  }
+  if (cards.length > 3) {
+    if (errEl) errEl.textContent = "Maximum 3 cat cards can be combined.";
+    return;
+  }
 
   let targetPlayerId = null;
   const targetPlayerSel = document.getElementById("targetPlayerSelect");
@@ -479,11 +553,7 @@ async function playSelectedCards(game) {
 function renderNopePanel(game) {
   let panel = document.getElementById("nopePanel");
   if (!panel) {
-    panel = document.createElement("div");
-    panel.id = "nopePanel";
-    panel.style.cssText = "margin:10px 0;padding:15px;background:#e4cf91;border-radius:10px;color:#2a1a00;display:flex;flex-wrap:wrap;gap:8px;align-items:center;min-height:50px;border:2px solid #4a3a1a;";
-    const actionPanel = document.getElementById("actionPanel");
-    actionPanel?.parentNode?.insertBefore(panel, actionPanel.nextSibling);
+    return
   }
 
   panel.innerHTML = "";
@@ -605,55 +675,25 @@ function renderGiveCardPanel(game) {
 
 function toggleCardSelection(cardInt, slotIndex, game) {
   const existingIdx = selectedCards.findIndex(s => s.slotIndex === slotIndex);
-
   if (existingIdx !== -1) {
     selectedCards.splice(existingIdx, 1);
   } else {
-    // Validate the addition makes sense before adding
-    const newSelection = [...selectedCards, { cardInt, slotIndex }];
-    const allSameCard  = newSelection.every(s => s.cardInt === newSelection[0].cardInt);
-    const allCat       = newSelection.every(s => CAT_CARDS.has(s.cardInt));
-    const hasAction    = newSelection.some(s => !CAT_CARDS.has(s.cardInt) && !NON_PLAYABLE.has(s.cardInt));
-    const hasCat       = newSelection.some(s => CAT_CARDS.has(s.cardInt));
-
-    // Single action card is always fine
-    // Multiple cards: must all be the same cat card, max 3
-    if (newSelection.length > 1) {
-      if (!allCat || !allSameCard) {
-        showPlayError("You can only combine identical cat cards.");
-        return;
-      }
-      if (newSelection.length > 3) {
-        showPlayError("Maximum 3 cat cards can be combined.");
-        return;
-      }
-    }
-
     selectedCards.push({ cardInt, slotIndex });
   }
-
   renderMyCards(game);
   renderActionPanel(game);
 }
 
-function showPlayError(msg) {
-  const errEl = document.getElementById("playError");
-  if (errEl) { errEl.textContent = msg; return; }
-  // If panel not rendered yet, just alert
-  alert(msg);
-}
-
-
 function makeCardEl(name, slotIndex, isSelected = false, canSelect = false) {
   const div = document.createElement("div");
   div.className = "card";
-  div.title     = CARD_LABEL[name] ?? name;
+  div.title = CARD_LABEL[name] ?? name;
 
   if (isSelected) {
-    div.style.outline      = "3px solid #e67e22";
-    div.style.transform    = "translateY(-8px)";
-    div.style.boxShadow    = "0 4px 16px rgba(230,126,34,0.6)";
-    div.style.transition   = "transform 0.15s,box-shadow 0.15s";
+    div.style.outline = "3px solid #e67e22";
+    div.style.transform = "translateY(-8px)";
+    div.style.boxShadow = "0 4px 16px rgba(230,126,34,0.6)";
+    div.style.transition = "transform 0.15s,box-shadow 0.15s";
   }
   if (canSelect && !isSelected) {
     div.style.transition = "transform 0.15s";
@@ -661,16 +701,16 @@ function makeCardEl(name, slotIndex, isSelected = false, canSelect = false) {
 
   const imgUrl = cardImageUrl(name, slotIndex);
   if (imgUrl) {
-    div.style.padding    = "0";
-    div.style.overflow   = "hidden";
+    div.style.padding = "0";
+    div.style.overflow = "hidden";
     div.style.background = "#2a1a00";
     div.innerHTML = `
       <img src="${imgUrl}" alt="${CARD_LABEL[name] ?? name}"
         style="width:100%;height:100%;object-fit:cover;display:block;">
     `;
   } else {
-    div.style.background    = "#4a3a1a";
-    div.style.color= "#fff";
+    div.style.background = "#4a3a1a";
+    div.style.color = "#fff";
     div.style.flexDirection = "column";
     div.style.fontSize = "13px";
     div.style.textAlign = "center";
@@ -684,4 +724,24 @@ function makeCardEl(name, slotIndex, isSelected = false, canSelect = false) {
 function setStatus(msg) {
   const el = document.getElementById("status");
   if (el) el.innerHTML = `<p>${msg}</p>`;
+}
+
+async function drawCard() {
+  if (!currentGame) return;
+
+  try {
+  
+    await apiFetch(`/Games/${currentGame.id}/draw-card`, { 
+      method: "POST" 
+    });
+
+   
+    const updated = await apiFetch(`/Games/${currentGame.id}`);
+    currentGame = updated;
+    renderGame(updated);
+    
+  } catch (error) {
+    
+    alert("Cannot draw card: " + error.message);
+  }
 }

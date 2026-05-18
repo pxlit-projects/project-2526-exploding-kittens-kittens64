@@ -4,10 +4,16 @@
 }
 
 main {
+    width: 100%;
+    min-height: 100vh;
     font-family: Arial, sans-serif;
     background-image: url("../images/game_img/game_BackGround.jpg");
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
     color: #2a1a00;
     padding: 20px;
+    overflow-x: hidden;
 }
 
 h1 {
@@ -16,55 +22,140 @@ h1 {
     color: #2a1a00;
 }
 
-h2,
-h3 {
-    margin-top: 30px;
-    border-bottom: 2px solid #4a3a1a;
-    padding-bottom: 5px;
-}
 
-#status,
-#myCards,
-#opponents,
-#piles {
+
+#status {
     background: #e4cf91;
     padding: 15px;
     border-radius: 10px;
     margin-top: 10px;
     min-height: 50px;
-
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
 }
 
-.card {
-    width: 150px;
-    height: 200px;
-    border-radius: 8px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    border: 3px solid black;
-    margin-right: -110px;
-}
-
-.card:hover {
-    bottom: 0px;
-    margin-right: 10px;
-}
-
+/* Opponents layout */
 #opponents {
+
+    padding: 15px;
+    border-radius: 10px;
+    margin-top: 10px;
+    min-height: 50px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
     justify-content: space-between;
+
 }
 
 .opponent {
-    background: #e4cf91;
-    padding: 10px;
-    border-radius: 8px;
-    min-width: 120px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 200px;
+    height: 200px;
+
+}
+
+.opponent_name {
+    margin: 0;
+    position: absolute;
+    color: white;
+    font-size: 2.5rem;
     text-align: center;
+    left: 0;
+    right: 0;
+    z-index: 2;
+}
+
+#opponent_img {
+    width: 80%;
+    height: 80%;
+    object-fit: contain;
+}
+
+.opponents_cards {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 2px;
+    justify-content: center;
+    align-items: flex-end;
+    bottom: 2rem;
+}
+
+.card_counter {
+    position: absolute;
+    top: -30px;
+    left: 80%;
+    transform: translateX(-50%);
+    background: #4a3a1a;
+    color: #e4cf91;
+    font-weight: bold;
+    font-size: 20px;
+    padding: 2px 8px;
+    border-radius: 12px;
+}
+
+#opponents_card {
+    width: 28px;
+    height: 40px;
+    border-radius: 4px;
+}
+
+#opponents_card img {
+    width: 28px;
+    height: 40px;
+}
+
+/* opponent turn animation */
+.opponentTurn .avatar_img {
+    filter: drop-shadow(0 0 10px gold);
+    animation: glow 1s ease-in-out infinite alternate;
+    will-change: filter;
+}
+
+@keyframes glow {
+    from {
+        filter: drop-shadow(0 0 4px gold);
+    }
+
+    to {
+        filter: drop-shadow(0 0 20px gold);
+    }
+}
+
+/* piles */
+
+#piles {
+    padding: 15px;
+    border-radius: 10px;
+    margin-top: 10px;
+    min-height: 50px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+#drawPile {
+    color: white;
+    position: relative;
+    /* if page is reloaded you first see "deck background" */
+    width: 260px;
+    height: 280px;
+    background: #d1be84;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(74, 58, 26, 0.4);
+    border-radius: 1rem;
+}
+
+.deck_img {
+    border-radius: 1rem;
+    width: 260px;
+    height: 280px;
 }
 
 #status {
@@ -82,17 +173,121 @@ h3 {
     text-align: center;
 }
 
-#drawPile,
 #playPile {
-    width: 120px;
-    height: 160px;
+    width: 260px;
+    height: 280px;
     background: #d1be84;
-    border-radius: 8px;
+    border-radius: 1rem;
     box-shadow: 0 4px 10px rgba(74, 58, 26, 0.4);
-
     display: flex;
     justify-content: center;
     align-items: center;
-
     font-weight: bold;
+    
+}
+
+
+/* action pannel */
+#actionPanel {
+    width: 260px;
+    height: 280px;
+    margin: 10px 0;
+    padding: 15px;
+    background: #e4cf91;
+    border-radius: 10px;
+    color: #2a1a00;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+
+}
+
+/* player bar */
+.playerBar{
+    display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  width: 100%;
+}
+
+/* nope pannel */
+
+#nopePanel {
+    width: 200px;
+    min-height: 200px;
+    margin: 10px 0;
+    padding: 15px;
+    background: #e4cf91;
+    border-radius: 10px;
+    color: #2a1a00;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    border: 2px solid #4a3a1a;
+}
+
+/* my cards */
+#myCards {
+    padding: 15px;
+    border-radius: 10px;
+    margin-top: 10px;
+    min-height: 50px;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+
+.card {
+    width: 150px;
+    height: 180px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    border: 4px solid black;
+    margin-right: -20px;
+}
+
+/* This is the container for the image and the button */
+.deck-wrapper {
+    position: relative; /* CRITICAL: This keeps the button stuck inside this box */
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+
+.deck_img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+
+.draw-action-btn {
+    position: absolute;
+    bottom: 20px;    
+    left: 50%;
+    background-color: #4a3a1a;
+    color: #e4cf91;
+    border: 2px solid #2a1a00;
+    padding: 8px 15px;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 5;        
+}
+
+.deck-count-label {
+    margin-top: 5px;
+    color: #4a3a1a;
+    font-weight: bold;
+    background: rgba(228, 207, 145, 0.9);
+    padding: 2px 8px;
+    border-radius: 10px;
 }
