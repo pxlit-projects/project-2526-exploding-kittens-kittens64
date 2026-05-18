@@ -25,15 +25,17 @@ const waitingSubtitle= document.getElementById('waiting-subtitle');
 function getToken() {
     return sessionStorage.getItem('token');
 }
+
 function getUserFromToken() {
-    const storedToken = getToken();
-    if (!storedToken) return null;
-    try {
-        const payload = storedToken.split('.')[1];
-        return JSON.parse(atob(payload));
-    } catch {
+    let storedToken= getToken();
+    if(storedToken == null){
         return null;
     }
+    let parts = storedToken.split('.');
+    let payload= parts[1];
+    let decoded = atob(payload);
+    return JSON.parse(decoded);
+
 }
 
 // error block text tonen met behulp van functies
@@ -48,16 +50,26 @@ function clearError() {
 
 // de zitplekken tonen van de table
 function buildSeatsHtml(playerName, currentPlayers, maxPlayers) {
-    let html  = '';
+    let html = '';
     for (let i = 0; i < maxPlayers; i++) {
-        const isTaken= i < currentPlayers;
-        const content = isTaken ? (i === 0 ? playerName.substring(0, 3) : '...') : '-';
-        const className= isTaken ? 'seat' : 'seat empty';
-        html += `<div class="${className}">${content}</div>`;
+       
+        let isTaken  = i < currentPlayers;
+        let content= '-';
+        let className = 'seat empty';
+
+        if(isTaken){
+            className = 'seat';
+            if(i === 0) {
+            content =playerName.substring(0, 3);
+            }else{
+            content = '...';
+            }
+        }
+
+        html +=`<div class="${className}">${content}</div>`;
     }
     return html;
 }
-
 //  displayTables -> functioneert om tables te weergeven die in de lijst staan
 
 function displayTables(tablesToShow) {
@@ -86,7 +98,16 @@ function showTableWaiting(playerName, currentPlayers, maxPlayers, tableId) {
     tableList.style.display = 'none';
     waitingMessage.style.display  = 'block';
     waitingSubtitle.textContent= `${currentPlayers} / ${maxPlayers} Players present`;
-    waitingSeats.innerHTML  = buildSeatsHtml(playerName, currentPlayers, maxPlayers);
+   
+    let seatsHtml= '';
+    for(let i = 0; i < maxPlayers; i++){
+        if(i < currentPlayers){
+            seatsHtml +=`<div class="seat">...</div>`;
+        }else{
+            seatsHtml += `<div class="seat empty">-</div>`;
+        }
+        waitingSeats.innerHTML= seatsHtml;
+    }
 
     const oldLeaveButton= waitingMessage.querySelector('.leave-button');
     if (oldLeaveButton) oldLeaveButton.remove();
@@ -99,55 +120,101 @@ function showTableWaiting(playerName, currentPlayers, maxPlayers, tableId) {
 }
 
 // updateWaitingRoom(table) -> wanneer een speler leaved of joined update deze functie
-//                          -> de aantal spelers van de table
+//  -> de aantal spelers van de table
 
 function updateWaitingRoom(table) {
-    const waitingPlayerCount = table.seatedPlayers.length;
-    const waitingMaxSeats= table.preferences?.numberOfPlayers;
-    const waitingPlayerName = getUserFromToken()?.username || ' ';
+    let waitingPlayerCount  = table.seatedPlayers.length;
+    let waitingMaxSeats  = 0;
+    if(table.preferences) {
+        waitingMaxSeats = table.preferences.numberOfPlayers;
+    }
+    let waitingPlayerName= '';
+    if (getUserFromToken()) {
+        waitingPlayerName = getUserFromToken().username;}
 
     waitingSubtitle.textContent = `${waitingPlayerCount} / ${waitingMaxSeats} players present`;
-    waitingSeats.innerHTML= buildSeatsHtml(waitingPlayerName, waitingPlayerCount, waitingMaxSeats);
+    // seats opbouwen
+    let seatsHtml= '';
+    for (let i = 0; i < waitingMaxSeats; i++) {
+        if(i < waitingPlayerCount) {
+            seatsHtml += `<div class="seat">...</div>`;
+        }else{
+        seatsHtml += `<div class="seat empty">-</div>`;
+        }
+    }
+    waitingSeats.innerHTML = seatsHtml;
 
-    // De logica om de game te laten starten
-    const gameId = table.gameId || table.GameId;
-    const isRealGame = gameId && gameId !== '00000000-0000-0000-0000-000000000000';
-    if (isRealGame) {
-        const tableId = table.id || table.Id;
-        const playerId = getUserFromToken()?.nameid;;
-        window.location.href = `game.html?tableId=${tableId}&playerId=${playerId}`;;
+    // kijken of het spel al gestart is
+    let gameId = null;
+    if(table.gameId) {
+        gameId = table.gameId;
+    }else if (table.GameId) {
+        gameId= table.GameId;
+    }
+    let isRealGame = gameId && gameId !=='00000000-0000-0000-0000-000000000000';
+    if(isRealGame) {
+    let tableId = table.id || table.Id;
+    let playerId = getUserFromToken().nameid;
+    window.location.href = `game.html?tableId=${tableId}&playerId=${playerId}`;
     }
 }
+
+
+
 //  refreshTableList()  -> functie om de tables te refreshen in de list
 async function refreshTableList() {
-    const isWaiting = waitingMessage.style.display === 'block';
+   
+    let isWaiting= waitingMessage.style.display === 'block';
 
-    if (isWaiting && currentWaitingTableId) {
-        const waitingFetchResponse = await fetch(`https://localhost:5051/api/Tables/${currentWaitingTableId}`, {
-            headers: { 'Authorization': `Bearer ${getToken()}` }
+    if(isWaiting && currentWaitingTableId !=null){
+
+        let response = await fetch('https://localhost:5051/api/Tables/' + currentWaitingTableId, {
+            headers: { 'Authorization': 'Bearer ' + getToken() }
         });
-        if (!waitingFetchResponse.ok) return;
-        const myTable = await waitingFetchResponse.json();
+        if(!response.ok){
+            return;
+        }
+        let myTable = await response.json();
         updateWaitingRoom(myTable);
         return;
     }
 
-    const sliderMaxPlayers = parseInt(totalPlayersSlider.value) || 2;
-    const url = `https://localhost:5051/api/Tables/with-available-seats?NumberOfPlayers=${sliderMaxPlayers}&NumberOfArtificialPlayers=0`;
+    let aantalSpelers = parseInt(totalPlayersSlider.value);
+    if(!aantalSpelers){
+        aantalSpelers = 2;
+    }
 
-    const fetchResponse = await fetch(url, {
-        headers: { 'Authorization': `Bearer ${getToken()}` }
+    let url = 'https://localhost:5051/api/Tables/with-available-seats?NumberOfPlayers=' + aantalSpelers + '&NumberOfArtificialPlayers=0';
+    console.log(url);
+    let responseUrl = await fetch(url, {
+        headers: { 'Authorization': 'Bearer ' + getToken() }
     });
-    if (!fetchResponse.ok) return;
+    if(!responseUrl.ok){
+        return;
+    }
 
-    currentTables = await fetchResponse.json();
-    const filteredByFilter = currentTables.filter(t => (t.preferences?.numberOfPlayers || 0) === currentFilter);
+    currentTables = await responseUrl.json();
+   
 
-    if (currentFilter !== null) 
-        displayTables(filteredByFilter);
-    else  
+    if(currentFilter != null){
+        let filteredTables = [];
+        for (let i = 0; i < currentTables.length; i++){
+            let table = currentTables[i];
+            if(table.preferences && table.preferences.numberOfPlayers === currentFilter){
+                filteredTables.push(table);
+            }
+
+        }
+        displayTables(filteredTables);
+    }else{
         displayTables(currentTables);
+    }
+    
+
 }
+
+
+
 async function joinTable(tableId) {
     clearError();
 
@@ -161,14 +228,25 @@ async function joinTable(tableId) {
         return;
     }
 
-    const joinedTable= await joinFetchResponse.json();
+    let joinedTable= await joinFetchResponse.json();
     currentWaitingTableId  = joinedTable.id;
-    const joinPlayerName= getUserFromToken()?.username || '';
-    const joinSeatedCount = joinedTable.seatedPlayers ? joinedTable.seatedPlayers.length : 1;
-    const joinMaxSeats  = joinedTable.preferences?.numberOfPlayers || 0;
+    let joinPlayerName=  '';
+    if(getUserFromToken()){
+        joinPlayerName = getUserFromToken().username;
+    }
+    let joinSeatedCount =  1;
+    if(joinedTable.seatedPlayers){
+        joinSeatedCount = joinedTable.seatedPlayers.length;
+    }
+    let joinMaxSeats  = 0;
+    if(joinedTable.preferences){
+        joinMaxSeats = joinedTable.preferences.numberOfPlayers;
+    }
 
     showTableWaiting(joinPlayerName, joinSeatedCount, joinMaxSeats, joinedTable.id);
 }
+
+
 async function leaveTable(tableId) {
     clearError();
     const leaveFetchResponse = await fetch(`https://localhost:5051/api/Tables/${tableId}/leave`, {
@@ -188,7 +266,6 @@ async function leaveTable(tableId) {
     waitingMessage.style.display = 'none';
     await refreshTableList();
 }
-
 
 
 totalPlayersSlider.addEventListener('input', () => {

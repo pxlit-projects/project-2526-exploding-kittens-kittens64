@@ -116,10 +116,13 @@ const CARD_ACTION_DESCRIPTION = {
 };
 
 function getActionDescription(cards) {
-  if (!cards || cards.length === 0) return "";
+  if (!cards || cards.length === 0) 
+    return "";
   const allCat = cards.every(c => CAT_CARDS.has(c));
-  if (allCat && cards.length === 3) return "3-cat combo — a specific card is stolen from the target player.";
-  if (allCat && cards.length === 2) return CARD_ACTION_DESCRIPTION["BeardCat"];
+  if (allCat && cards.length === 3) 
+    return "3-cat combo  a specific card is stolen from the target player.";
+  if (allCat && cards.length === 2) 
+    return CARD_ACTION_DESCRIPTION["BeardCat"];
   const name = CARD_NAME[cards[0]];
   return CARD_ACTION_DESCRIPTION[name] ?? "";
 }
