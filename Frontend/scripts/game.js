@@ -396,30 +396,20 @@ function renderOpponents(game) {
 
 function renderMyPlayer(game) {
   const el = document.getElementById("myPlayer");
-  if (!el) {
-    return
-  }
-
-  let me;
-  const players = game.players;
-  for (let i = 0; i < players.length; i++) {
-    if (players[i].id === PLAYER_ID) {
-      me = players[i];
-      break;
-    }
-  }
-
-  let myTurn = "";
-  if (game.playerToPlayId === PLAYER_ID) {
-    myTurn = "opponentTurn";
-  }
+  if (!el) return;
+ 
+  const me = (game.players ?? []).find(p => p.id === PLAYER_ID);
+  if (!me) return;
+ 
+  const myTurnClass = game.playerToPlayId === PLAYER_ID ? "opponentTurn" : "";
+ 
   el.innerHTML = `
     <div class="opponent ${myTurnClass}">
       <h3 class="opponent_name">${me.name}</h3>
       <img class="avatar_img" src="images/avatars/avatar-1.png" alt="my-avatar">
     </div>
   `;
-}
+} 
 
 
 function renderActionPanel(game) {
@@ -823,7 +813,7 @@ async function drawCard() {
       method: "POST" 
     });
 
-    
+
     const updated = await apiFetch(`/Games/${currentGame.id}`);
     currentGame = updated;
     renderGame(updated);
