@@ -510,7 +510,7 @@ function renderActionPanel(game) {
       opt.textContent = label;
       sel.appendChild(opt);
     });
-    panel.appendChild(sel);
+    panel.appendChild(sel); 
   }
 
   const btn = document.createElement("button");
@@ -537,7 +537,14 @@ function renderActionPanel(game) {
 
 function needsTargetPlayer(selected, game) {
   if (selected.length === 0) return false;
-  const allCat = selected.every(s => CAT_CARDS.has(s.cardInt));
+
+  let allCat = true;
+  for (const select of selected) {
+    if (!CAT_CARDS.has(select.cardInt)) {
+      allCat = false;
+      break;
+    }
+  }
   if (allCat && selected.length >= 2) return true;
   if (selected.length === 1 && selected[0].cardInt === Card.Favor) return true;
   return false;
@@ -557,6 +564,26 @@ async function playSelectedCards(game) {
   const errEl = document.getElementById("playError");
   if (errEl) errEl.textContent = "";
 
+const cards = [];
+for (const selected of selectedCards) {
+  cards.push(selected.cardInt);
+}
+
+let allCat = true;
+for (const card of cards) {
+  if (!CAT_CARDS.has(card)) {
+    allCat = false;
+    break;
+  }
+}
+
+let allSame = true;
+for (const card of cards) {
+  if (card !== cards[0]) {
+    allSame = false;
+    break;
+  }
+}
   const cards = selectedCards.map(s => s.cardInt);
 
   const validationError = validateCardCombination(cards);
