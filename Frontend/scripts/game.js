@@ -459,7 +459,7 @@ function renderActionPanel(game) {
       opt.textContent = label;
       sel.appendChild(opt);
     });
-    panel.appendChild(sel);
+    panel.appendChild(sel); 
   }
 
   // Play button
@@ -485,7 +485,14 @@ function renderActionPanel(game) {
 
 function needsTargetPlayer(selected, game) {
   if (selected.length === 0) return false;
-  const allCat = selected.every(s => CAT_CARDS.has(s.cardInt));
+
+  let allCat = true;
+  for (const select of selected) {
+    if (!CAT_CARDS.has(select.cardInt)) {
+      allCat = false;
+      break;
+    }
+  }
   if (allCat && selected.length >= 2) return true;
   if (selected.length === 1 && selected[0].cardInt === Card.Favor) return true;
   return false;
@@ -495,9 +502,26 @@ async function playSelectedCards(game) {
   const errEl = document.getElementById("playError");
   if (errEl) errEl.textContent = "";
 
-  const cards = selectedCards.map(s => s.cardInt);
-  const allCat = cards.every(c => CAT_CARDS.has(c));
-  const allSame = cards.every(c => c === cards[0]);
+const cards = [];
+for (const selected of selectedCards) {
+  cards.push(selected.cardInt);
+}
+
+let allCat = true;
+for (const card of cards) {
+  if (!CAT_CARDS.has(card)) {
+    allCat = false;
+    break;
+  }
+}
+
+let allSame = true;
+for (const card of cards) {
+  if (card !== cards[0]) {
+    allSame = false;
+    break;
+  }
+}
 
   if (allCat && cards.length === 1) {
     if (errEl) errEl.textContent = "You can't play with only one cat card.";
