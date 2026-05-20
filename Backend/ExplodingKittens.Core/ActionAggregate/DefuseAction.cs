@@ -5,7 +5,7 @@ namespace ExplodingKittens.Core.ActionAggregate;
 
 internal class DefuseAction : ActionBase
 {
-    public DefuseAction(IGame game, Guid playerId, IReadOnlyList<Card> cards, int drawPileIndex)
+    public DefuseAction(IGame game, Guid playerId, IReadOnlyList<Card> cards, int? drawPileIndex)
         : base(game, playerId, cards, false, Card.ExplodingKitten, null, drawPileIndex)
     {
     }
@@ -20,6 +20,8 @@ internal class DefuseAction : ActionBase
 
             // je steekt terug in de draw pile, de positie van de kaart beslis jezelf
             Game.DrawPile.InsertCard(Card.ExplodingKitten, DrawPileIndex.Value);
+
+            Game.PendingDraws = 0;
 
             Game.AdvanceTurn();
         }

@@ -53,11 +53,11 @@ internal class ActionFactory : IActionFactory
             throw new InvalidOperationException("To create a 'Defuse' action, the target card must be an exploding kitten");
         }
 
-        if (!drawPileIndex.HasValue)
-        {
-            throw new InvalidOperationException("To create a 'Defuse' action, a draw pile index must be specified");
-        }
+        //if (!drawPileIndex.HasValue)
+        //{
+        //    throw new InvalidOperationException("To create a 'Defuse' action, a draw pile index must be specified");
+        //}
 
-        return new DefuseAction(game, playerId, cards, drawPileIndex.Value);
+        return new DefuseAction(game, playerId, cards, drawPileIndex);
     }
 }

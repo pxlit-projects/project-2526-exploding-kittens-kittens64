@@ -116,12 +116,12 @@ const CARD_ACTION_DESCRIPTION = {
 };
 
 function getActionDescription(cards) {
-  if (!cards || cards.length === 0) 
+  if (!cards || cards.length === 0)
     return "";
   const allCat = cards.every(c => CAT_CARDS.has(c));
-  if (allCat && cards.length === 3) 
+  if (allCat && cards.length === 3)
     return "3-cat combo  a specific card is stolen from the target player.";
-  if (allCat && cards.length === 2) 
+  if (allCat && cards.length === 2)
     return CARD_ACTION_DESCRIPTION["BeardCat"];
   const name = CARD_NAME[cards[0]];
   return CARD_ACTION_DESCRIPTION[name] ?? "";
@@ -400,19 +400,19 @@ function renderOpponents(game) {
 function renderMyPlayer(game) {
   const el = document.getElementById("myPlayer");
   if (!el) return;
- 
+
   const me = (game.players ?? []).find(p => p.id === PLAYER_ID);
   if (!me) return;
- 
+
   const myTurnClass = game.playerToPlayId === PLAYER_ID ? "opponentTurn" : "";
- 
+
   el.innerHTML = `
     <div class="opponent ${myTurnClass}">
       <h3 class="opponent_name">${me.name}</h3>
       <img class="avatar_img" src="images/avatars/avatar-1.png" alt="my-avatar">
     </div>
   `;
-} 
+}
 
 
 function renderActionPanel(game) {
@@ -422,6 +422,44 @@ function renderActionPanel(game) {
   }
 
   panel.innerHTML = "";
+
+  // CHOOSE  
+  const action = game.pendingAction;
+  if (action && !action.isExecuted && action.cards.includes(Card.Defuse)) {
+
+    panel.innerHTML = `
+    <div>Defuse! Kies waar je de Exploding Kitten terugplaatst:</div>
+    <input type="range" id="ex-kit-slider" min="0" max="${game.drawPileCount}" value="1">
+    <div id="label">Positie: 1</div>
+    <button id="confirm-btn">Bevestigen</button>
+  `;
+
+    document.getElementById("ex-kit-slider").addEventListener("input", (e) => {
+      document.getElementById("label").textContent = `Positie: ${e.target.value}`;
+    });
+
+    document.getElementById("confirm-btn").addEventListener("click", async () => {
+      const slider = document.getElementById("ex-kit-slider");
+
+      const position = parseInt(slider.value);
+
+      await apiFetch(`/Games/${game.id}/play-action`, {
+        method: "POST",
+        body: JSON.stringify({
+          cards: [Card.Defuse],
+          targetPlayerId: null,
+          targetCard: Card.ExplodingKitten,
+          drawPileIndex: position
+        })
+      });
+
+      const update = await apiFetch(`/Games/${game.id}`);
+      currentGame = update;
+      renderGame(update);
+    });
+
+    return;
+  }
 
   const pendingAction = game.pendingAction;
 
@@ -443,7 +481,7 @@ function renderActionPanel(game) {
     banner.className = "pending-action-banner";
     banner.innerHTML = `
       <div class="pending-action-who">
-        🎴 <strong>${actor?.name ?? "Someone"}</strong> played
+        <strong>${actor?.name ?? "Someone"}</strong> played
         <strong>${cardNames}</strong>
       </div>
       <div class="pending-action-desc">${actionDesc}</div>
@@ -731,14 +769,14 @@ function renderGiveCardPanel(game) {
 
 
   const iAmTarget = action.targetPlayerId === PLAYER_ID;
-  const isFavor   = (action.cards ?? []).includes(Card.Favor);
-  const isNoped   = action.isNoped;
-  
+  const isFavor = (action.cards ?? []).includes(Card.Favor);
+  const isNoped = action.isNoped;
+
   if (!iAmTarget || !isFavor || isNoped) return;
 
   const actor = (game.players ?? []).find(p => p.id === action.playerId);
-  const me    = (game.players ?? []).find(p => p.id === PLAYER_ID);
-  const hand  = me?.cardsInHand ?? [];
+  const me = (game.players ?? []).find(p => p.id === PLAYER_ID);
+  const hand = me?.cardsInHand ?? [];
 
   const info = document.createElement("div");
   info.style.cssText = "width:100%;margin-bottom:8px;font-weight:bold;";
@@ -747,7 +785,7 @@ function renderGiveCardPanel(game) {
 
   hand.forEach((cardInt, i) => {
     const name = CARD_NAME[cardInt] ?? "?";
-    const div  = makeCardEl(name, i, false, true);
+    const div = makeCardEl(name, i, false, true);
     div.style.cursor = "pointer";
     div.addEventListener("click", () => sendGiveCard(game.id, cardInt));
     panel.appendChild(div);
@@ -811,18 +849,18 @@ async function drawCard() {
   if (!currentGame) return;
 
   try {
-  
-    await apiFetch(`/Games/${currentGame.id}/draw-card`, { 
-      method: "POST" 
+
+    await apiFetch(`/Games/${currentGame.id}/draw-card`, {
+      method: "POST"
     });
 
 
     const updated = await apiFetch(`/Games/${currentGame.id}`);
     currentGame = updated;
     renderGame(updated);
-  
+
   } catch (error) {
-    
+
     alert("Cannot draw card: " + error.message);
   }
 }
