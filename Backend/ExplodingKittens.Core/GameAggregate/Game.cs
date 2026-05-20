@@ -65,8 +65,12 @@ internal class Game : IGame
             if (player.Hand.Contains(Card.Defuse))
             {
 
+                player.Hand.PickSpecificCard(Card.Defuse);
+                DiscardPile.Add(Card.Defuse);
+
                 player.Hand.InsertCard(card);
-                PendingDraws--;
+                // new[] { Card.Defuse } maak array met een card omdat methode verwacht een array
+                _pendingAction = _actionFactory.Create(this, playerId, new[] { Card.Defuse }, null, Card.ExplodingKitten, null);
             }
             else
             {
@@ -93,8 +97,19 @@ internal class Game : IGame
     {
         if (playerId != _currentPlayerId && !cards.All(c => c == Card.Nope))
             throw new InvalidOperationException("It's not your turn (unless you play a Nope).");
-        if (_pendingAction != null && !_pendingAction.IsExecuted)
+        if (_pendingAction != null && !_pendingAction.IsExecuted && !_pendingAction.Cards.Contains(Card.Defuse))
             throw new InvalidOperationException("There is already a pending action.");
+
+        if (_pendingAction != null && _pendingAction.Cards.Contains(Card.Defuse))
+        {
+            _pendingAction = _actionFactory.Create(this, playerId, new[] { Card.Defuse }, null, Card.ExplodingKitten, drawPileIndex);
+
+            foreach (var p in Players)
+            {
+                _pendingAction.ConfirmNotNoping(p.Id);
+            }
+            return;
+        }
 
         var player = GetPlayerById(playerId);
 
