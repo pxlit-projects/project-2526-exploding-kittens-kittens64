@@ -269,7 +269,7 @@ function renderStatus(game) {
   const current = (game.players ?? []).find(p => p.id === game.playerToPlayId);
   const isMyTurn = PLAYER_ID && game.playerToPlayId === PLAYER_ID;
   setStatus(isMyTurn
-    ? "⭐ It is your turn!"
+    ? " It is your turn!"
     : `Turn of ${current?.name ?? "…"}`
   );
 }
@@ -423,31 +423,35 @@ function renderActionPanel(game) {
 
   panel.innerHTML = "";
 
-  // CHOOSE  
+  // AUTO Defuse card if Exploding kitten is picked from card deck and place it back to choosed position
   const action = game.pendingAction;
-  if (action && !action.isExecuted && action.cards.includes(Card.Defuse)) {
+
+  let MyTurn
+  if(game.playerToPlayId === PLAYER_ID){
+    MyTurn=true
+  }
+
+  if (action && !action.isExecuted && action.cards.includes(Card.Defuse)&&MyTurn) {
 
     panel.innerHTML = `
     <div>Defuse! Kies waar je de Exploding Kitten terugplaatst:</div>
-    <input type="range" id="ex-kit-slider" min="0" max="${game.drawPileCount}" value="1">
-    <div id="label">Positie: 1</div>
+    <input type="range" id="ex-kit-slider" min="0" max="${game.drawPileCount}" value="0">
+    <div id="label">Positie: 0</div>
     <button id="confirm-btn">Bevestigen</button>
   `;
 
-    document.getElementById("ex-kit-slider").addEventListener("input", (e) => {
-      document.getElementById("label").textContent = `Positie: ${e.target.value}`;
+    document.getElementById("ex-kit-slider").addEventListener("input", (input) => {
+      document.getElementById("label").textContent = `Positie: ${input.target.value}`;
     });
 
     document.getElementById("confirm-btn").addEventListener("click", async () => {
       const slider = document.getElementById("ex-kit-slider");
-
       const position = parseInt(slider.value);
 
       await apiFetch(`/Games/${game.id}/play-action`, {
         method: "POST",
         body: JSON.stringify({
           cards: [Card.Defuse],
-          targetPlayerId: null,
           targetCard: Card.ExplodingKitten,
           drawPileIndex: position
         })
@@ -602,18 +606,18 @@ async function playSelectedCards(game) {
   const errEl = document.getElementById("playError");
   if (errEl) errEl.textContent = "";
 
-const cards = [];
-for (const selected of selectedCards) {
-  cards.push(selected.cardInt);
-}
+// const cards = [];
+// for (const selected of selectedCards) {
+//   cards.push(selected.cardInt);
+// }
 
-let allCat = true;
-for (const card of cards) {
-  if (!CAT_CARDS.has(card)) {
-    allCat = false;
-    break;
-  }
-}
+// let allCat = true;
+// for (const card of cards) {
+//   if (!CAT_CARDS.has(card)) {
+//     allCat = false;
+//     break;
+//   }
+// }
 
 let allSame = true;
 for (const card of cards) {
