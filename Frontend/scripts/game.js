@@ -210,7 +210,7 @@ async function startGamePolling(gameId) {
     } catch (e) {
       console.warn("Poll error:", e.message);
     }
-  }, 2000);
+  }, 5000);
 }
 
 
@@ -618,6 +618,7 @@ async function playSelectedCards(game) {
 //     break;
 //   }
 // }
+const cards = selectedCards.map(s => s.cardInt);
 
 let allSame = true;
 for (const card of cards) {
@@ -626,7 +627,6 @@ for (const card of cards) {
     break;
   }
 }
-  const cards = selectedCards.map(s => s.cardInt);
 
   const validationError = validateCardCombination(cards);
   if (validationError) {
