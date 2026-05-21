@@ -15,14 +15,21 @@ internal class DefuseAction : ActionBase
         if (TargetCard == Card.ExplodingKitten && DrawPileIndex.HasValue)
         {
             var player = Game.GetPlayerById(PlayerId);
-            // verwijdert exploding kitten van de hand
+
+            // Defuse uit hand halen en op de aflegstapel plaatsen
+            player.Hand.PickSpecificCard(Card.Defuse);
+            Game.DiscardPile.Add(Card.Defuse);
+
+            // Exploding Kitten uit hand halen en terug in de trekstapel plaatsen
             player.Hand.PickSpecificCard(Card.ExplodingKitten);
 
-            // je steekt terug in de draw pile, de positie van de kaart beslis jezelf
+            var maxIndex = Game.DrawPile.CardCount;
+            if (DrawPileIndex.Value < 0 || DrawPileIndex.Value > maxIndex)
+                throw new InvalidOperationException("Invalid draw pile index.");
+
             Game.DrawPile.InsertCard(Card.ExplodingKitten, DrawPileIndex.Value);
 
             Game.PendingDraws = 0;
-
             Game.AdvanceTurn();
         }
     }
