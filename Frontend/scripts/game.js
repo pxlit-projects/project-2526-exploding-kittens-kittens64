@@ -328,7 +328,7 @@ function renderDiscardPile(game) {
   const imgUrl = cardImageUrl(name, pile.length);
 
   if (imgUrl) {
-    el.innerHTML = `<img src="${imgUrl}" alt="${CARD_LABEL[name] ?? name}" style="width:100%;height:100%;object-fit:fill;border-radius:8px;">`;
+    el.innerHTML = `<img src="${imgUrl}" alt="${CARD_LABEL[name] ?? name}" class="play-pile-image">`;
     el.style.padding = "0";
   } else {
     el.textContent = CARD_LABEL[name] ?? name;
@@ -344,7 +344,7 @@ function renderMyCards(game) {
   const me = (game.players ?? []).find(p => p.id === PLAYER_ID);
 
   if (!me) { el.innerHTML = "<p>Player not found.</p>"; return; }
-  if (me.eliminated) { el.innerHTML = `<p style="color:#c0392b;font-weight:bold;">You are eliminated 💀</p>`; return; }
+  if (me.eliminated) { el.innerHTML = `<p class="eliminated-msg">You are eliminated 💀</p>`; return; }
 
   const hand = me.cardsInHand ?? [];
   if (hand.length === 0) { el.innerHTML = "<p>No cards in hand.</p>"; return; }
@@ -360,8 +360,7 @@ function renderMyCards(game) {
       div.style.cursor = "pointer";
       div.addEventListener("click", () => toggleCardSelection(cardInt, i, game));
     } else {
-      div.style.opacity = "0.75";
-      div.style.cursor = "default";
+      div.classList.add("disabled");
     }
 
     el.appendChild(div);
@@ -475,7 +474,7 @@ function renderActionPanel(game) {
   if (needsTarget) {
     const sel = document.createElement("select");
     sel.id = "targetPlayerSelect";
-    sel.style.cssText = "padding:4px 8px;border-radius:6px;border:2px solid #4a3a1a;background:#d1be84;color:#2a1a00;";
+    sel.className = "target-select";
     const placeholder = document.createElement("option");
     placeholder.value = "";
     placeholder.textContent = "— Select target player —";
@@ -496,7 +495,7 @@ function renderActionPanel(game) {
   if (needsTargetCard) {
     const sel = document.createElement("select");
     sel.id = "targetCardSelect";
-    sel.style.cssText = "padding:4px 8px;border-radius:6px;border:2px solid #4a3a1a;background:#d1be84;color:#2a1a00;";
+    sel.className = "target-select";
     const placeholder = document.createElement("option");
     placeholder.value = "";
     placeholder.textContent = "— Select card to steal —";
@@ -515,13 +514,13 @@ function renderActionPanel(game) {
 
   const btn = document.createElement("button");
   btn.textContent = "▶ Play cards";
-  btn.style.cssText = "padding:8px 16px;background:#4a3a1a;border:none;border-radius:6px;color:#e4cf91;font-weight:bold;cursor:pointer;";
+  btn.className = "play-cards-btn";
   btn.addEventListener("click", () => playSelectedCards(game));
   panel.appendChild(btn);
 
   const clearBtn = document.createElement("button");
   clearBtn.textContent = "✕ Clear";
-  clearBtn.style.cssText = "padding:8px 12px;background:#d1be84;border:2px solid #4a3a1a;border-radius:6px;color:#2a1a00;cursor:pointer;";
+  clearBtn.className = "clear-cards-btn";
   clearBtn.addEventListener("click", () => {
     selectedCards = [];
     renderMyCards(game);
@@ -531,7 +530,7 @@ function renderActionPanel(game) {
 
   const errEl = document.createElement("div");
   errEl.id = "playError";
-  errEl.style.cssText = "width:100%;color:#e74c3c;font-size:13px;";
+  errEl.className = "play-error";
   panel.appendChild(errEl);
 }
 
@@ -564,26 +563,6 @@ async function playSelectedCards(game) {
   const errEl = document.getElementById("playError");
   if (errEl) errEl.textContent = "";
 
-const cards = [];
-for (const selected of selectedCards) {
-  cards.push(selected.cardInt);
-}
-
-let allCat = true;
-for (const card of cards) {
-  if (!CAT_CARDS.has(card)) {
-    allCat = false;
-    break;
-  }
-}
-
-let allSame = true;
-for (const card of cards) {
-  if (card !== cards[0]) {
-    allSame = false;
-    break;
-  }
-}
   const cards = selectedCards.map(s => s.cardInt);
 
   const validationError = validateCardCombination(cards);
@@ -746,7 +725,6 @@ function renderGiveCardPanel(game) {
   if (!panel) {
     panel = document.createElement("div");
     panel.id = "giveCardPanel";
-    panel.style.cssText = "margin:10px 0;padding:15px;background:#e4cf91;border-radius:10px;color:#2a1a00;display:flex;flex-wrap:wrap;gap:8px;align-items:center;min-height:50px;border:2px solid #c03424;";
     const nopePanel = document.getElementById("nopePanel");
     nopePanel?.parentNode?.insertBefore(panel, nopePanel.nextSibling);
   }
@@ -768,7 +746,7 @@ function renderGiveCardPanel(game) {
   const hand  = me?.cardsInHand ?? [];
 
   const info = document.createElement("div");
-  info.style.cssText = "width:100%;margin-bottom:8px;font-weight:bold;";
+  info.className = "give-card-info";
   info.textContent = `${actor?.name ?? "Someone"} needs a card from you! pick one you'd like to give:`;
   panel.appendChild(info);
 
@@ -798,31 +776,21 @@ function makeCardEl(name, slotIndex, isSelected = false, canSelect = false) {
   div.title = CARD_LABEL[name] ?? name;
 
   if (isSelected) {
-    div.style.outline = "3px solid #e67e22";
-    div.style.transform = "translateY(-8px)";
-    div.style.boxShadow = "0 4px 16px rgba(230,126,34,0.6)";
-    div.style.transition = "transform 0.15s,box-shadow 0.15s";
+    div.classList.add("selected");
   }
   if (canSelect && !isSelected) {
-    div.style.transition = "transform 0.15s";
+    div.classList.add("selectable");
   }
 
   const imgUrl = cardImageUrl(name, slotIndex);
   if (imgUrl) {
-    div.style.padding = "0";
-    div.style.overflow = "hidden";
-    div.style.background = "#2a1a00";
-    div.innerHTML = `
-      <img src="${imgUrl}" alt="${CARD_LABEL[name] ?? name}"
-        style="width:100%;height:100%;object-fit:cover;display:block;">
-    `;
+    div.classList.add("with-image");
+    const img = document.createElement("img");
+    img.src = imgUrl;
+    img.alt = CARD_LABEL[name] ?? name;
+    div.appendChild(img);
   } else {
-    div.style.background = "#4a3a1a";
-    div.style.color = "#fff";
-    div.style.flexDirection = "column";
-    div.style.fontSize = "13px";
-    div.style.textAlign = "center";
-    div.style.padding = "8px";
+    div.classList.add("without-image");
     div.textContent = CARD_LABEL[name] ?? name;
   }
 

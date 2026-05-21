@@ -257,3 +257,12 @@ select {
     font-weight: bold;
     color: #2a1a00;
 }
+
+
+.hidden {
+    display: none !important;
+}
+
+.visible {
+    display: block !important;
+}

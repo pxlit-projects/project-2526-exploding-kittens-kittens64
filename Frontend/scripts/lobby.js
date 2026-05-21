@@ -95,8 +95,10 @@ function displayTables(tablesToShow) {
 //                   -> terwijl je aan het wachten bent
 
 function showTableWaiting(playerName, currentPlayers, maxPlayers, tableId) {
-    tableList.style.display = 'none';
-    waitingMessage.style.display  = 'block';
+    tableList.classList.add('hidden');
+    tableList.classList.remove('visible');
+    waitingMessage.classList.add('visible');
+    waitingMessage.classList.remove('hidden');
     waitingSubtitle.textContent= `${currentPlayers} / ${maxPlayers} Players present`;
    
     let seatsHtml= '';
@@ -164,7 +166,7 @@ function updateWaitingRoom(table) {
 //  refreshTableList()  -> functie om de tables te refreshen in de list
 async function refreshTableList() {
    
-    let isWaiting= waitingMessage.style.display === 'block';
+    let isWaiting= waitingMessage.classList.contains('visible');
 
     if(isWaiting && currentWaitingTableId !=null){
 
@@ -262,8 +264,10 @@ async function leaveTable(tableId) {
         return;
     }
     currentWaitingTableId = null;
-    tableList.style.display = 'block';
-    waitingMessage.style.display = 'none';
+    tableList.classList.add('visible');
+    tableList.classList.remove('hidden');
+    waitingMessage.classList.add('hidden');
+    waitingMessage.classList.remove('visible');
     await refreshTableList();
 }
 
@@ -311,8 +315,10 @@ createTableButton.addEventListener('click', async () => {
 
 document.addEventListener('DOMContentLoaded', () => {
     currentWaitingTableId= null;
-    waitingMessage.style.display = 'none';
-    tableList.style.display= 'block';
+    waitingMessage.classList.add('hidden');
+    waitingMessage.classList.remove('visible');
+    tableList.classList.add('visible');
+    tableList.classList.remove('hidden');
     refreshTableList();
     setInterval(refreshTableList, 1000);
 });
