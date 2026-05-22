@@ -142,7 +142,28 @@ function hasUnresolvedAction(game) {
   return !!(game.pendingAction && !game.pendingAction.isExecuted);
 }
 
-// Boot
+function checkIfIHaveExploded(game) {
+  let allPlayers = game.players;
+  if(!allPlayers) {
+    allPlayers = [];
+  }
+
+  let myPlayer= null;
+  for(let i= 0; i < allPlayers.length; i++) {
+    if(allPlayers[i].id === PLAYER_ID) {
+      myPlayer = allPlayers[i];
+    }
+  }
+  if(!myPlayer) {
+    return false;
+  }
+  if(myPlayer.eliminated === true) {
+    return true;
+  }
+  return false;
+}
+
+// startup Code 
 if (!TABLE_ID) {
   setStatus("Found no table ID.");
 } else {
@@ -258,6 +279,8 @@ function renderGame(game) {
   renderNopePanel(game);
   renderGiveCardPanel(game);
   renderMyPlayer(game);
+  renderDeadPopup(game);  
+  renderSpectator(game);
 }
 
 function renderStatus(game) {
@@ -344,7 +367,7 @@ function renderMyCards(game) {
   const me = (game.players ?? []).find(p => p.id === PLAYER_ID);
 
   if (!me) { el.innerHTML = "<p>Player not found.</p>"; return; }
-  if (me.eliminated) { el.innerHTML = `<p style="color:#c0392b;font-weight:bold;">You are eliminated 💀</p>`; return; }
+  if (me.eliminated) { el.innerHTML = `<p style="color:#c0392b;font-weight:bold;">YOU ARE ELIMINATED</p>`; return; }
 
   const hand = me.cardsInHand ?? [];
   if (hand.length === 0) { el.innerHTML = "<p>No cards in hand.</p>"; return; }
@@ -384,8 +407,26 @@ function renderOpponents(game) {
     // dit nog moet je toevogen eliminated ???
     //   <h3>${p.name} ${p.eliminated ? "💀" : isActive ? "⭐" : ""}</h3>
 
+    let avatarSrc = "";
+    let displayName = "";
+    let displayCount = 0;
+    let cardsBackHtml = "";
+
+    if(p.eliminated === true){
+      avatarSrc = "images/avatars/avatar-dead.png";
+      displayName = `${p.name}  (ELIMINATED)`;
+      displayCount = 0;
+      cardsBackHtml = ""; 
+    }else{
+      avatarSrc = "images/avatars/avatar-1.png";
+      displayName= p.name;
+      displayCount= count;
+      cardsBackHtml = "<div class='opponents_card'> <img src='images/game_img/deck_img.png' alt='op_card'> </div>".repeat(Math.min(displayCount, 5));
+    }
+
+
     el.innerHTML += `
-      <div class="opponent ${opponentTurn}">
+      <div class="opponent ${opponentTurn}" ${p.eliminated ? 'eliminated-opponent' : ''}">
           <h3 class="opponent_name">${p.name}</h3>
         <img class="avatar_img" src="images/avatars/avatar-1.png" alt="opponent-img">
         <div class="opponents_cards">
@@ -423,6 +464,12 @@ function renderActionPanel(game) {
 
   panel.innerHTML = "";
 
+   let iAmEliminated = checkIfIHaveExploded(game);
+  if (iAmEliminated === true) {
+    panel.innerHTML= `<p>You are eliminated, spectator mode is ON, no action are allowed</p>`;
+    return;
+  }
+
   // AUTO Defuse card if Exploding kitten is picked from card deck and place it back to choosed position
   const action = game.pendingAction;
 
@@ -434,7 +481,7 @@ function renderActionPanel(game) {
   if (action && !action.isExecuted && action.cards.includes(Card.Defuse)&&MyTurn) {
 
     panel.innerHTML = `
-    <div>Defuse! Kies waar je de Exploding Kitten terugplaatst:</div>
+    <div>Defuse! Choose in which position you want to put the Exploding Kitten Card :</div>
     <input type="range" id="ex-kit-slider" min="0" max="${game.drawPileCount}" value="0">
     <div id="label">Positie: 0</div>
     <button id="confirm-btn">Bevestigen</button>
@@ -476,9 +523,9 @@ function renderActionPanel(game) {
 
     let nopeStatus = "";
     if (pendingAction.isNoped) {
-      nopeStatus = `<span class="nope-badge nope-active">⛔ NOPED — action is cancelled</span>`;
+      nopeStatus = `<span class="nope-badge nope-active">NOPED, action is cancelled</span>`;
     } else if ((pendingAction.nopeCount ?? 0) > 0 && !pendingAction.isNoped) {
-      nopeStatus = `<span class="nope-badge nope-restored">↩️ Counter-noped — action is ACTIVE again</span>`;
+      nopeStatus = `<span class="nope-badge nope-restored">Counter-noped, action is ACTIVE again</span>`;
     }
 
     const banner = document.createElement("div");
@@ -678,6 +725,12 @@ function renderNopePanel(game) {
 
   panel.innerHTML = "";
 
+
+  let iAmEliminated= checkIfIHaveExploded(game);
+  if(iAmEliminated === true){
+    return;
+  }
+
   const action = game.pendingAction;
   if (!action) return;
 
@@ -784,6 +837,12 @@ async function sendGiveCard(gameId, cardInt) {
 }
 
 function renderGiveCardPanel(game) {
+
+  let iAmEliminated = checkIfIHaveExploded(game);
+  if (iAmEliminated === true) {
+    return;
+  }
+
   let panel = document.getElementById("giveCardPanel");
   if (!panel) {
     panel = document.createElement("div");
@@ -875,6 +934,52 @@ function setStatus(msg) {
   const el = document.getElementById("status");
   if (el) el.innerHTML = `<p>${msg}</p>`;
 }
+
+function renderSpectator(game) {
+  let spectatorBannerElement = document.getElementById("spectatorBanner");
+  if (!spectatorBannerElement) {
+    return;
+  }
+
+  spectatorBannerElement.innerHTML = "";
+
+  let iAmEliminated = checkIfIHaveExploded(game);
+
+  if (iAmEliminated === true) {
+    spectatorBannerElement.innerHTML = `
+      <div class="spectator-alert-banner">
+        <strong>SPECTATOR MODE ACTIVE:</strong> You have been eliminated, you can only spectate.
+      </div>
+    `;
+  }
+}
+
+function renderDeadPopup(game) {
+  let deadPopupElement = document.getElementById("deadPopup");
+  if (!deadPopupElement) {
+    return;
+  }
+
+  deadPopupElement.innerHTML = "";
+
+  let iAmEliminated = checkIfIHaveExploded(game);
+
+  if (iAmEliminated === true) {
+    deadPopupElement.innerHTML=`
+      <div class="game-over-overlay">
+      <div class="game-over-modal">
+      <h2>BOOM!</h2>
+      <p>You drew an Exploding Kitten and had no Defuse card!</p>
+      <p class="sub-text">You are now watching the other players...</p>
+      </div>
+      </div>
+    `;
+    deadPopupElement.style.display = "block";
+  } else {
+    deadPopupElement.style.display = "none";
+  }
+}
+
 
 async function drawCard() {
   if (!currentGame) return;
