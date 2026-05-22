@@ -9,6 +9,7 @@ using ExplodingKittens.Bootstrapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using ExplodingKittens.Api.Hubs;
 
 namespace ExplodingKittens.Api;
 
@@ -17,6 +18,8 @@ public class Program
     public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
+
+        builder.Services.AddSignalR();
 
         ///////////////////////////////////
         // Dependency injection container//
@@ -37,9 +40,15 @@ public class Program
         builder.Services.AddCors(options =>
         {
             options.AddPolicy("AllowAll",
-                policyBuilder => policyBuilder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+                policyBuilder => policyBuilder
+                    .WithOrigins(
+                        "http://localhost:5500",
+                        "http://127.0.0.1:5500"
+                    )
+                    .AllowAnyMethod()
+                    .AllowAnyHeader()
+                    .AllowCredentials());
         });
-
 
         builder.Services.AddOpenApi();
 
@@ -123,7 +132,7 @@ public class Program
         app.UseAuthorization();
 
         app.MapControllers();
-
+        app.MapHub<ChatHub>("/chathub");
         app.Run();
     }
 }

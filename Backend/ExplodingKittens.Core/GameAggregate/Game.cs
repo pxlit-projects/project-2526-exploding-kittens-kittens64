@@ -1,3 +1,4 @@
+using ExplodingKittens.Core.ActionAggregate;
 using ExplodingKittens.Core.ActionAggregate.Contracts;
 using ExplodingKittens.Core.CardAggregate;
 using ExplodingKittens.Core.CardAggregate.Contracts;
@@ -65,12 +66,11 @@ internal class Game : IGame
             if (player.Hand.Contains(Card.Defuse))
             {
 
-                player.Hand.PickSpecificCard(Card.Defuse);
-                DiscardPile.Add(Card.Defuse);
 
                 player.Hand.InsertCard(card);
+                PendingDraws--;
                 // new[] { Card.Defuse } maak array met een card omdat methode verwacht een array
-                _pendingAction = _actionFactory.Create(this, playerId, new[] { Card.Defuse }, null, Card.ExplodingKitten, null);
+                _pendingAction = new DefuseAction(this, playerId, new[] { Card.Defuse }, null);
             }
             else
             {
@@ -103,7 +103,6 @@ internal class Game : IGame
         if (_pendingAction != null && _pendingAction.Cards.Contains(Card.Defuse))
         {
             _pendingAction = _actionFactory.Create(this, playerId, new[] { Card.Defuse }, null, Card.ExplodingKitten, drawPileIndex);
-
             foreach (var p in Players)
             {
                 _pendingAction.ConfirmNotNoping(p.Id);
