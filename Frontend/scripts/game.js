@@ -426,7 +426,7 @@ function renderOpponents(game) {
 
 
     el.innerHTML += `
-      <div class="opponent ${opponentTurn} ${p.eliminated ? 'eliminated-opponent' : ''} data-player-id="${p.id}">
+      <div class="opponent ${opponentTurn} ${p.eliminated ? 'eliminated-opponent' : ''}" data-player-id="${p.id}">
           <h3 class="opponent_name">${p.name}</h3>
         <img class="avatar_img" src="images/avatars/avatar-1.png" alt="opponent-img">
         <div class="opponents_cards">
