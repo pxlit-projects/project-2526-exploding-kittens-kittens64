@@ -385,13 +385,14 @@ function renderOpponents(game) {
     //   <h3>${p.name} ${p.eliminated ? "💀" : isActive ? "⭐" : ""}</h3>
 
     el.innerHTML += `
-      <div class="opponent ${opponentTurn}">
+      <div class="opponent ${opponentTurn}" data-player-id="${p.id}">
           <h3 class="opponent_name">${p.name}</h3>
         <img class="avatar_img" src="images/avatars/avatar-1.png" alt="opponent-img">
         <div class="opponents_cards">
               <span class="card_counter">${count}</span>
           ${"<div id='opponents_card'> <img src='images/game_img/deck_img.png' alt='op_card'> </div>".repeat(Math.min(count, 5))}
         </div>
+        <div class="message-container"></div>
       </div>
     `;
   });
