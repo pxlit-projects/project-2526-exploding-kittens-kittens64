@@ -238,6 +238,18 @@ h1 {
     flex-wrap: wrap;
 }
 
+#futureCardsPanel{
+    display:flex;
+    flex-wrap:wrap;
+    gap:12px;
+    padding:12px;
+    background:#e4cf91;
+    border-radius:10px;
+    border:2px solid #2a1a00;
+    margin:10px 0;
+    align-items:flex-end;
+    min-height:0;
+} 
 
 .card {
     width: 150px;
