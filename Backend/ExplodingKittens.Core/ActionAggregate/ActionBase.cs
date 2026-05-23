@@ -40,6 +40,7 @@ internal abstract class ActionBase : IAction
             bool hasNope = player.Hand.Contains(Card.Nope);
             _playerNopeDecisions[player.Id] = (player.Id == PlayerId || !hasNope) ? NopeDecision.NotNoping : NopeDecision.NotDecided;
         }
+        CheckAndExecute();
     }
 
     public void Nope(Guid nopingPlayerId)
