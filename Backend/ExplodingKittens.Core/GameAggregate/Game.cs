@@ -100,7 +100,7 @@ internal class Game : IGame
         if (_pendingAction != null && !_pendingAction.IsExecuted && !_pendingAction.Cards.Contains(Card.Defuse))
             throw new InvalidOperationException("There is already a pending action.");
 
-        if (_pendingAction != null && _pendingAction.Cards.Contains(Card.Defuse))
+        if (_pendingAction != null && _pendingAction.Cards.Contains(Card.Defuse) && !_pendingAction.IsExecuted)
         {
             _pendingAction = _actionFactory.Create(this, playerId, new[] { Card.Defuse }, null, Card.ExplodingKitten, drawPileIndex);
             foreach (var p in Players)
