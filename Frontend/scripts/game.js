@@ -755,9 +755,9 @@ function renderNopePanel(game) {
   if (nopeCount === 0) {
       chainMsg = "Pending — waiting for players to decide.";
   } else if (action.isNoped) {
-      chainMsg = `⛔ Noped ${nopeCount}x — action is <strong>cancelled</strong>.`;
+      chainMsg = `Noped ${nopeCount}x — action is <strong>cancelled</strong>.`;
   } else {
-      chainMsg = `↩️ Counter-noped ${nopeCount}x — action is <strong>active again</strong>.`;
+      chainMsg = ` Counter-noped ${nopeCount}x — action is <strong>active again</strong>.`;
   }
 
   const info = document.createElement("div");
@@ -778,7 +778,7 @@ function renderNopePanel(game) {
   if (myDecision !== 0) {
       const decided = document.createElement("div");
       decided.className = "nope-decided";
-      decided.textContent = myDecision === 1 ? "You played Nope ⛔" : "You confirmed ✅";
+      decided.textContent = myDecision === 1 ? "You played Nope " : "You confirmed ";
       panel.appendChild(decided);
       return;
   }
@@ -796,14 +796,14 @@ function renderNopePanel(game) {
 
   if (hasNope) {
       const nopeBtn = document.createElement("button");
-      nopeBtn.textContent = action.isNoped ? "↩️ Counter-nope it!" : "⛔ Nope it!";
+      nopeBtn.textContent = action.isNoped ? "Counter-nope it!" : "Nope it!";
       nopeBtn.className = "nope-btn";
       nopeBtn.addEventListener("click", () => sendNope(game.id));
       btnRow.appendChild(nopeBtn);
   }
 
   const passBtn = document.createElement("button");
-  passBtn.textContent = "✅ Let it pass";
+  passBtn.textContent = "Let it pass";
   passBtn.className = "nope-pass-btn";
   passBtn.addEventListener("click", () => sendConfirmNotNoping(game.id));
   btnRow.appendChild(passBtn);

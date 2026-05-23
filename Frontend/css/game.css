@@ -359,7 +359,7 @@ h1 {
 
 .eliminated-opponent {
     opacity: 0.5;
-    filter: grayscale(100%);
+    filter: grayscale(100%); 
 }
 
 .avatar_img {
