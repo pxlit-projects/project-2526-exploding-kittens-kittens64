@@ -356,3 +356,14 @@ h1 {
     border-radius: 20px;
     padding: 8px 12px;
 }
+
+.eliminated-opponent {
+    opacity: 0.5;
+    filter: grayscale(100%);
+}
+
+.avatar_img {
+    width: 200px;
+    height: 200px;
+    object-fit: contain;
+}

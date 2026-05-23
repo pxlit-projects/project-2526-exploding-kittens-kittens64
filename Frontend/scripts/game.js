@@ -399,6 +399,7 @@ function renderOpponents(game) {
 
   const opponents = (game.players ?? []).filter(p => p.id !== PLAYER_ID);
   opponents.forEach(p => {
+    console.log(p.name, "eliminated:", p.eliminated);
     const count = p.cardsInHandCount ?? 0;
 
     let opponentTurn = "";
@@ -406,7 +407,7 @@ function renderOpponents(game) {
       opponentTurn = "opponentTurn";
     }
     // dit nog moet je toevogen eliminated ???
-    //   <h3>${p.name} ${p.eliminated ? "💀" : isActive ? "⭐" : ""}</h3>
+    //   <h3>${p.name} ${p.eliminated ? "" : isActive ? "": ""}</h3>
 
     let avatarSrc = "";
     let displayName = "";
@@ -415,25 +416,24 @@ function renderOpponents(game) {
 
     if(p.eliminated === true){
       avatarSrc = "images/avatars/avatar-dead.png";
-      displayName = `${p.name}  (ELIMINATED)`;
+      displayName = `${p.name}`;
       displayCount = 0;
       cardsBackHtml = ""; 
     }else{
       avatarSrc = "images/avatars/avatar-1.png";
       displayName= p.name;
       displayCount= count;
-      cardsBackHtml = "<div class='opponents_card'> <img src='images/game_img/deck_img.png' alt='op_card'> </div>".repeat(Math.min(displayCount, 5));
+      cardsBackHtml = "<div id='opponents_card'> <img src='images/game_img/deck_img.png' alt='op_card'> </div>".repeat(Math.min(displayCount, 5));
     }
 
 
     el.innerHTML += `
       <div class="opponent ${opponentTurn} ${p.eliminated ? 'eliminated-opponent' : ''}" data-player-id="${p.id}">
-          <h3 class="opponent_name">${p.name}</h3>
-        <img class="avatar_img" src="images/avatars/avatar-1.png" alt="opponent-img">
+          <h3 class="opponent_name">${displayName}</h3>
+        <img class="avatar_img" src="${avatarSrc}" alt="opponent-img">
         <div class="opponents_cards">
-              <span class="card_counter">${count}</span>
-          ${"<div id='opponents_card'> <img src='images/game_img/deck_img.png' alt='op_card'> </div>".repeat(Math.min(count, 5))}
-        </div>
+              <span class="card_counter">${displayCount}</span>
+          ${cardsBackHtml}
         <div class="message-container"></div>
       </div>
     `;
