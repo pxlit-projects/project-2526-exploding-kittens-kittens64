@@ -277,6 +277,7 @@ function renderGame(game) {
   renderOpponents(game);
   renderActionPanel(game);
   renderNopePanel(game);
+  renderFutureCards(game);
   renderGiveCardPanel(game);
   renderMyPlayer(game);
   renderDeadPopup(game);  
@@ -819,6 +820,40 @@ async function sendConfirmNotNoping(gameId) {
   } catch (e) {
     setStatus(`Confirm error: ${e.message}`);
   }
+}
+
+function renderFutureCards(game) {
+  const panel = document.getElementById("futureCardsPanel");
+  if (!panel) return;
+
+  panel.innerHTML = "";
+  const me = (game.players ?? []).find(p => p.id === PLAYER_ID);
+  const futureCards = me?.futureCards ?? [];
+
+  if (futureCards.length === 0) return;
+
+  const title = document.createElement("div");
+  title.style.cssText = "width:100%;font-weight:bold;margin-bottom:8px;";
+  title.textContent = "The next 3 cards are:";
+  panel.appendChild(title);
+
+  futureCards.forEach((cardInt, i) => {
+    const name = CARD_NAME[cardInt] ?? "?";
+    const wrapper = document.createElement("div");
+    wrapper.style.cssText = "display:flex;flex-direction:column;align-items:center;gap:4px;";
+
+    const label = document.createElement("div");
+    label.style.cssText = "font-size:11px;color:#4a3a1a;font-weight:bold;";
+    label.textContent = `#${i + 1}`;
+
+    const card = makeCardEl(name, i);
+    card.style.opacity = "1";
+    card.style.cursor = "default";
+
+    wrapper.appendChild(label);
+    wrapper.appendChild(card);
+    panel.appendChild(wrapper);
+  });
 }
 
 // Willem Beckers
