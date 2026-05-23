@@ -137,7 +137,10 @@ function updateWaitingRoom(table) {
     let seatsHtml= '';
     for (let i = 0; i < waitingMaxSeats; i++) {
         if(i < waitingPlayerCount) {
-            seatsHtml += `<div class="seat">...</div>`;
+            
+            let userName = table.seatedPlayers[i].name
+            let initials = (userName[0] +userName[userName.length - 1]).toUpperCase()
+            seatsHtml += `<div class="seat">${initials}</div>`;
         }else{
         seatsHtml += `<div class="seat empty">-</div>`;
         }
