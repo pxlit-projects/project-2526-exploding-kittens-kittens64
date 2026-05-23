@@ -744,21 +744,20 @@ function renderNopePanel(game) {
 
   if (myDecision === undefined) return;
 
-  const isActor = action.playerId === PLAYER_ID;
-  const isNoped = action.isNoped;
-  const nopeCount = action.nopeCount ?? 0;
+  const me = (game.players ?? []).find(p => p.id === PLAYER_ID);
+  const hasNope = (me?.cardsInHand ?? []).includes(Card.Nope);
 
   const actorName = (game.players ?? []).find(p => p.id === action.playerId)?.name ?? "Someone";
   const cardNames = (action.cards ?? []).map(c => CARD_LABEL[CARD_NAME[c]] ?? "?").join(" + ");
 
-  // Describe the current state of the nope chain
+  const nopeCount = action.nopeCount ?? 0;
   let chainMsg = "";
   if (nopeCount === 0) {
-    chainMsg = "Pending — waiting for players to decide.";
-  } else if (isNoped) {
-    chainMsg = `⛔ Noped ${nopeCount}x — action is <strong>cancelled</strong>.`;
+      chainMsg = "Pending — waiting for players to decide.";
+  } else if (action.isNoped) {
+      chainMsg = `⛔ Noped ${nopeCount}x — action is <strong>cancelled</strong>.`;
   } else {
-    chainMsg = `↩️ Counter-noped ${nopeCount}x — original action is <strong>active again</strong>.`;
+      chainMsg = `↩️ Counter-noped ${nopeCount}x — action is <strong>active again</strong>.`;
   }
 
   const info = document.createElement("div");
@@ -769,30 +768,42 @@ function renderNopePanel(game) {
   `;
   panel.appendChild(info);
 
+  const activePlayers = (game.players ?? []).filter(p => !p.eliminated);
+  const firstUndecided = activePlayers.find(p =>
+      action.playerNopeDecisions?.[p.id] === 0 // NotDecided = 0
+  );
+
+  const isMyTurn = firstUndecided?.id === PLAYER_ID;
+
   if (myDecision !== 0) {
-    const decided = document.createElement("div");
-    decided.className = "nope-decided";
-    decided.textContent = myDecision === 1 ? "You played Nope ⛔" : "You confirmed ✅";
-    panel.appendChild(decided);
-    return;
+      const decided = document.createElement("div");
+      decided.className = "nope-decided";
+      decided.textContent = myDecision === 1 ? "You played Nope ⛔" : "You confirmed ✅";
+      panel.appendChild(decided);
+      return;
   }
 
-  const me = (game.players ?? []).find(p => p.id === PLAYER_ID);
-  const hasNope = (me?.cardsInHand ?? []).includes(Card.Nope);
+  if (!isMyTurn) {
+      const waiting = document.createElement("div");
+      waiting.className = "nope-decided";
+      waiting.textContent = `Waiting for ${firstUndecided?.name ?? "other players"} to decide…`;
+      panel.appendChild(waiting);
+      return;
+  }
 
   const btnRow = document.createElement("div");
   btnRow.className = "nope-btn-row";
 
-  if (!isActor && hasNope) {
-    const nopeBtn = document.createElement("button");
-    nopeBtn.textContent = isNoped ? "↩️ Counter-nope it!" : "⛔ Nope it!";
-    nopeBtn.className = "nope-btn";
-    nopeBtn.addEventListener("click", () => sendNope(game.id));
-    btnRow.appendChild(nopeBtn);
+  if (hasNope) {
+      const nopeBtn = document.createElement("button");
+      nopeBtn.textContent = action.isNoped ? "↩️ Counter-nope it!" : "⛔ Nope it!";
+      nopeBtn.className = "nope-btn";
+      nopeBtn.addEventListener("click", () => sendNope(game.id));
+      btnRow.appendChild(nopeBtn);
   }
 
   const passBtn = document.createElement("button");
-  passBtn.textContent = isActor ? "✅ Proceed" : "✅ Let it pass";
+  passBtn.textContent = "✅ Let it pass";
   passBtn.className = "nope-pass-btn";
   passBtn.addEventListener("click", () => sendConfirmNotNoping(game.id));
   btnRow.appendChild(passBtn);
