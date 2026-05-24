@@ -687,19 +687,6 @@ async function playSelectedCards(game) {
   if (errEl) errEl.textContent = "";
 
   const cards = selectedCards.map(s => s.cardInt);
-  // const cards = [];
-  // for (const selected of selectedCards) {
-  //   cards.push(selected.cardInt);
-  // }
-
-  // let allCat = true;
-  // for (const card of cards) {
-  //   if (!CAT_CARDS.has(card)) {
-  //     allCat = false;
-  //     break;
-  //   }
-  // }
-  const cards = selectedCards.map(s => s.cardInt);
 
   let allSame = true;
   for (const card of cards) {
