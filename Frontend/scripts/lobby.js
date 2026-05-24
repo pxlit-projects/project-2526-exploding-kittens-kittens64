@@ -133,6 +133,8 @@ function showTableWaiting(playerName, currentPlayers, maxPlayers, tableId) {
         if(i < currentPlayers){
             seatsHtml +=`<div class="seat">...</div>`;
         }else{
+        }
+    }
     tableList.style.display = 'none';
     waitingMessage.style.display = 'block';
     createTableButton.disabled = true;
