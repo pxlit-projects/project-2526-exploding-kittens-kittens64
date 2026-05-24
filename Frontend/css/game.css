@@ -204,8 +204,7 @@ h1 {
 }
 
 
-.playerBar{
-/* player bar */
+
 .playerBar {
     display: flex;
     flex-direction: row;
