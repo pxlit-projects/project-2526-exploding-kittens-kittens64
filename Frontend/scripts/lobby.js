@@ -127,7 +127,6 @@ function showTableWaiting(playerName, currentPlayers, maxPlayers, tableId) {
     waitingMessage.classList.add('visible');
     waitingMessage.classList.remove('hidden');
     waitingSubtitle.textContent= `${currentPlayers} / ${maxPlayers} Players present`;
-}
     let seatsHtml= '';
     for(let i = 0; i < maxPlayers; i++){
         if(i < currentPlayers){
@@ -140,7 +139,6 @@ function showTableWaiting(playerName, currentPlayers, maxPlayers, tableId) {
     createTableButton.disabled = true;
     searchButton.disabled = true;
     waitingSubtitle.textContent = `${currentPlayers} / ${maxPlayers} Players present`;
-        }
     let seatsHtml = '';
     for (let i = 0; i < maxPlayers; i++) {
         if (i < currentPlayers) {
