@@ -35,7 +35,7 @@ h1 {
     flex-wrap: wrap;
 }
 
-/* Opponents layout */
+
 #opponents {
 
     padding: 15px;
@@ -111,7 +111,7 @@ h1 {
     height: 40px;
 }
 
-/* opponent turn animation */
+
 .opponentTurn .avatar_img {
     filter: drop-shadow(0 0 10px gold);
     animation: glow 1s ease-in-out infinite alternate;
@@ -128,7 +128,7 @@ h1 {
     }
 }
 
-/* piles */
+
 
 #piles {
     padding: 15px;
@@ -143,7 +143,7 @@ h1 {
 #drawPile {
     color: white;
     position: relative;
-    /* if page is reloaded you first see "deck background" */
+
     width: 260px;
     height: 280px;
     background: #d1be84;
@@ -187,7 +187,7 @@ h1 {
 }
 
 
-/* action pannel */
+
 #actionPanel {
     width: 260px;
     height: 280px;
@@ -203,6 +203,8 @@ h1 {
 
 }
 
+
+.playerBar{
 /* player bar */
 .playerBar {
     display: flex;
@@ -211,7 +213,7 @@ h1 {
     width: 100%;
 }
 
-/* nope pannel */
+
 
 #nopePanel {
     width: 200px;
@@ -228,7 +230,7 @@ h1 {
     border: 2px solid #4a3a1a;
 }
 
-/* my cards */
+
 #myCards {
     padding: 15px;
     border-radius: 10px;
@@ -263,7 +265,6 @@ h1 {
     margin-right: -20px;
 }
 
-/* This is the container for the image and the button */
 .deck-wrapper {
     position: relative;
     /* CRITICAL: This keeps the button stuck inside this box */
@@ -305,6 +306,117 @@ h1 {
     border-radius: 10px;
 }
 
+
+.target-select {
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 2px solid #4a3a1a;
+    background: #d1be84;
+    color: #2a1a00;
+}
+
+.play-cards-btn {
+    padding: 8px 16px;
+    background: #4a3a1a;
+    border: none;
+    border-radius: 6px;
+    color: #e4cf91;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.clear-cards-btn {
+    padding: 8px 12px;
+    background: #d1be84;
+    border: 2px solid #4a3a1a;
+    border-radius: 6px;
+    color: #2a1a00;
+    cursor: pointer;
+}
+
+.play-error {
+    width: 100%;
+    color: #e74c3c;
+    font-size: 13px;
+}
+
+#giveCardPanel {
+    margin: 10px 0;
+    padding: 15px;
+    background: #e4cf91;
+    border-radius: 10px;
+    color: #2a1a00;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    min-height: 50px;
+    border: 2px solid #c03424;
+}
+
+.give-card-info {
+    width: 100%;
+    margin-bottom: 8px;
+    font-weight: bold;
+}
+
+
+.card.selected {
+    outline: 3px solid #e67e22;
+    transform: translateY(-8px);
+    box-shadow: 0 4px 16px rgba(230,126,34,0.6);
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.card.selectable {
+    transition: transform 0.15s;
+}
+
+.card.disabled {
+    opacity: 0.75;
+    cursor: default;
+}
+
+.card.with-image {
+    padding: 0;
+    overflow: hidden;
+    background: #2a1a00;
+}
+
+.card.with-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.card.without-image {
+    background: #4a3a1a;
+    color: #fff;
+    flex-direction: column;
+    font-size: 13px;
+    text-align: center;
+    padding: 8px;
+}
+
+
+.play-pile-image {
+    width: 100%;
+    height: 100%;
+    object-fit: fill;
+    border-radius: 8px;
+}
+
+
+.eliminated-msg {
+    color: #c0392b;
+    font-weight: bold;
+}
+
+
+#status p {
+    margin: 0;
+}
 /* chat  */
 
 .playerChat {
