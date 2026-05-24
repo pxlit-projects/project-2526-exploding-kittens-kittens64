@@ -368,9 +368,8 @@ function renderMyCards(game) {
   const me = (game.players ?? []).find(p => p.id === PLAYER_ID);
 
   if (!me) { el.innerHTML = "<p>Player not found.</p>"; return; }
-  if (me.eliminated) { el.innerHTML = `<p class="eliminated-msg">You are eliminated 💀</p>`; return; }
-  if (me.eliminated) { el.innerHTML = `<p style="color:#c0392b;font-weight:bold;">YOU ARE ELIMINATED</p>`; return; }
-
+  if (me.eliminated) { el.innerHTML = `<p class="eliminated-msg">YOU ARE ELIMINATED</p>`; return; }
+  
   const hand = me.cardsInHand ?? [];
   if (hand.length === 0) { el.innerHTML = "<p>No cards in hand.</p>"; return; }
 
@@ -749,6 +748,7 @@ function renderNopePanel(game) {
 
   let iAmEliminated = checkIfIHaveExploded(game);
   if (iAmEliminated === true) {
+    panel.style.display = 'none';
     return;
   }
 
@@ -854,8 +854,14 @@ async function sendConfirmNotNoping(gameId) {
 
 function renderFutureCards(game) {
   const panel = document.getElementById("futureCardsPanel");
+
   if (!panel) return;
 
+    let iAmEliminated = checkIfIHaveExploded(game);
+    if (iAmEliminated === true) {
+        panel.style.display = 'none';
+        return;
+    }
   panel.innerHTML = "";
   const me = (game.players ?? []).find(p => p.id === PLAYER_ID);
   const futureCards = me?.futureCards ?? [];
@@ -904,12 +910,14 @@ async function sendGiveCard(gameId, cardInt) {
 
 function renderGiveCardPanel(game) {
 
+  let panel = document.getElementById("giveCardPanel");
+
   let iAmEliminated = checkIfIHaveExploded(game);
   if (iAmEliminated === true) {
+    if (panel) panel.style.display = 'none';
     return;
   }
-
-  let panel = document.getElementById("giveCardPanel");
+ 
   if (!panel) {
     panel = document.createElement("div");
     panel.id = "giveCardPanel";
