@@ -144,20 +144,20 @@ function hasUnresolvedAction(game) {
 
 function checkIfIHaveExploded(game) {
   let allPlayers = game.players;
-  if(!allPlayers) {
+  if (!allPlayers) {
     allPlayers = [];
   }
 
-  let myPlayer= null;
-  for(let i= 0; i < allPlayers.length; i++) {
-    if(allPlayers[i].id === PLAYER_ID) {
+  let myPlayer = null;
+  for (let i = 0; i < allPlayers.length; i++) {
+    if (allPlayers[i].id === PLAYER_ID) {
       myPlayer = allPlayers[i];
     }
   }
-  if(!myPlayer) {
+  if (!myPlayer) {
     return false;
   }
-  if(myPlayer.eliminated === true) {
+  if (myPlayer.eliminated === true) {
     return true;
   }
   return false;
@@ -231,7 +231,7 @@ async function startGamePolling(gameId) {
     } catch (e) {
       console.warn("Poll error:", e.message);
     }
-  }, 5000);
+  }, 2000);
 }
 
 
@@ -264,7 +264,7 @@ function renderTableWaiting(table) {
   seated.forEach(p => {
     const div = document.createElement("div");
     div.className = "opponent";
-    div.innerHTML = `<h3>${p.name}</h3><p>Aanwezig ✅</p>`;
+    div.innerHTML = `<h3>${p.name}</h3><p>Aanwezig</p>`;
     el.appendChild(div);
   });
 }
@@ -280,7 +280,7 @@ function renderGame(game) {
   renderFutureCards(game);
   renderGiveCardPanel(game);
   renderMyPlayer(game);
-  renderDeadPopup(game);  
+  renderDeadPopup(game);
   renderSpectator(game);
 }
 
@@ -414,15 +414,15 @@ function renderOpponents(game) {
     let displayCount = 0;
     let cardsBackHtml = "";
 
-    if(p.eliminated === true){
+    if (p.eliminated === true) {
       avatarSrc = "images/avatars/avatar-dead.png";
       displayName = `${p.name}`;
       displayCount = 0;
-      cardsBackHtml = ""; 
-    }else{
+      cardsBackHtml = "";
+    } else {
       avatarSrc = "images/avatars/avatar-1.png";
-      displayName= p.name;
-      displayCount= count;
+      displayName = p.name;
+      displayCount = count;
       cardsBackHtml = "<div id='opponents_card'> <img src='images/game_img/deck_img.png' alt='op_card'> </div>".repeat(Math.min(displayCount, 5));
     }
 
@@ -463,12 +463,29 @@ function renderActionPanel(game) {
   if (!panel) {
     return
   }
+  // Save current selected values before clearing the panel
+  let savedTargetPlayer = null;
+  const selectPlayer = document.getElementById("targetPlayerSelect");
+  if (selectPlayer){
+    savedTargetPlayer = selectPlayer.value;
+  }
+
+  let savedTargetCard = null;
+  const selectCard = document.getElementById("targetCardSelect");
+  if  (selectCard){
+    savedTargetCard = selectCard.value;
+  };
+  let savedSlider = null;
+  const sliderEl = document.getElementById("ex-kit-slider");
+  if (sliderEl) {
+    savedSlider = sliderEl.value;
+  }
 
   panel.innerHTML = "";
 
-   let iAmEliminated = checkIfIHaveExploded(game);
+  let iAmEliminated = checkIfIHaveExploded(game);
   if (iAmEliminated === true) {
-    panel.innerHTML= `<p>You are eliminated, spectator mode is ON, no action are allowed</p>`;
+    panel.innerHTML = `<p>You are eliminated, spectator mode is ON, no action are allowed</p>`;
     return;
   }
 
@@ -476,11 +493,11 @@ function renderActionPanel(game) {
   const action = game.pendingAction;
 
   let MyTurn
-  if(game.playerToPlayId === PLAYER_ID){
-    MyTurn=true
+  if (game.playerToPlayId === PLAYER_ID) {
+    MyTurn = true
   }
 
-  if (action && !action.isExecuted && action.cards.includes(Card.Defuse)&&MyTurn) {
+  if (action && !action.isExecuted && action.cards.includes(Card.Defuse) && MyTurn) {
 
     panel.innerHTML = `
     <div>Defuse! Choose in which position you want to put the Exploding Kitten Card :</div>
@@ -488,6 +505,11 @@ function renderActionPanel(game) {
     <div id="label">Positie: 0</div>
     <button id="confirm-btn">Bevestigen</button>
   `;
+  // Restore previously selected slider after refresh
+  if (savedSlider !== null) {
+    document.getElementById("ex-kit-slider").value = savedSlider;
+    document.getElementById("label").textContent = `Positie: ${savedSlider}`;
+  }
 
     document.getElementById("ex-kit-slider").addEventListener("input", (input) => {
       document.getElementById("label").textContent = `Positie: ${input.target.value}`;
@@ -541,6 +563,7 @@ function renderActionPanel(game) {
       ${nopeStatus}
     `;
     panel.appendChild(banner);
+    
     return;
   }
 
@@ -581,6 +604,10 @@ function renderActionPanel(game) {
         sel.appendChild(opt);
       });
     panel.appendChild(sel);
+  // Restore previously selected target player
+    if (savedTargetPlayer) {
+      sel.value = savedTargetPlayer;
+    }
   }
 
   const needsTargetCard = selectedCards.length === 3 && selectedCards.every(s => CAT_CARDS.has(s.cardInt));
@@ -601,7 +628,11 @@ function renderActionPanel(game) {
       opt.textContent = label;
       sel.appendChild(opt);
     });
-    panel.appendChild(sel); 
+    panel.appendChild(sel);
+    // Restore previously selected card
+    if (savedTargetCard){
+      sel.value = savedTargetCard;
+    }
   }
 
   const btn = document.createElement("button");
@@ -655,27 +686,27 @@ async function playSelectedCards(game) {
   const errEl = document.getElementById("playError");
   if (errEl) errEl.textContent = "";
 
-// const cards = [];
-// for (const selected of selectedCards) {
-//   cards.push(selected.cardInt);
-// }
+  // const cards = [];
+  // for (const selected of selectedCards) {
+  //   cards.push(selected.cardInt);
+  // }
 
-// let allCat = true;
-// for (const card of cards) {
-//   if (!CAT_CARDS.has(card)) {
-//     allCat = false;
-//     break;
-//   }
-// }
-const cards = selectedCards.map(s => s.cardInt);
+  // let allCat = true;
+  // for (const card of cards) {
+  //   if (!CAT_CARDS.has(card)) {
+  //     allCat = false;
+  //     break;
+  //   }
+  // }
+  const cards = selectedCards.map(s => s.cardInt);
 
-let allSame = true;
-for (const card of cards) {
-  if (card !== cards[0]) {
-    allSame = false;
-    break;
+  let allSame = true;
+  for (const card of cards) {
+    if (card !== cards[0]) {
+      allSame = false;
+      break;
+    }
   }
-}
 
   const validationError = validateCardCombination(cards);
   if (validationError) {
@@ -728,8 +759,8 @@ function renderNopePanel(game) {
   panel.innerHTML = "";
 
 
-  let iAmEliminated= checkIfIHaveExploded(game);
-  if(iAmEliminated === true){
+  let iAmEliminated = checkIfIHaveExploded(game);
+  if (iAmEliminated === true) {
     return;
   }
 
@@ -753,11 +784,11 @@ function renderNopePanel(game) {
   const nopeCount = action.nopeCount ?? 0;
   let chainMsg = "";
   if (nopeCount === 0) {
-      chainMsg = "Pending — waiting for players to decide.";
+    chainMsg = "Pending — waiting for players to decide.";
   } else if (action.isNoped) {
-      chainMsg = `Noped ${nopeCount}x — action is <strong>cancelled</strong>.`;
+    chainMsg = `Noped ${nopeCount}x — action is <strong>cancelled</strong>.`;
   } else {
-      chainMsg = ` Counter-noped ${nopeCount}x — action is <strong>active again</strong>.`;
+    chainMsg = ` Counter-noped ${nopeCount}x — action is <strong>active again</strong>.`;
   }
 
   const info = document.createElement("div");
@@ -770,36 +801,36 @@ function renderNopePanel(game) {
 
   const activePlayers = (game.players ?? []).filter(p => !p.eliminated);
   const firstUndecided = activePlayers.find(p =>
-      action.playerNopeDecisions?.[p.id] === 0 // NotDecided = 0
+    action.playerNopeDecisions?.[p.id] === 0 // NotDecided = 0
   );
 
   const isMyTurn = firstUndecided?.id === PLAYER_ID;
 
   if (myDecision !== 0) {
-      const decided = document.createElement("div");
-      decided.className = "nope-decided";
-      decided.textContent = myDecision === 1 ? "You played Nope " : "You confirmed ";
-      panel.appendChild(decided);
-      return;
+    const decided = document.createElement("div");
+    decided.className = "nope-decided";
+    decided.textContent = myDecision === 1 ? "You played Nope " : "You confirmed ";
+    panel.appendChild(decided);
+    return;
   }
 
   if (!isMyTurn) {
-      const waiting = document.createElement("div");
-      waiting.className = "nope-decided";
-      waiting.textContent = `Waiting for ${firstUndecided?.name ?? "other players"} to decide…`;
-      panel.appendChild(waiting);
-      return;
+    const waiting = document.createElement("div");
+    waiting.className = "nope-decided";
+    waiting.textContent = `Waiting for ${firstUndecided?.name ?? "other players"} to decide…`;
+    panel.appendChild(waiting);
+    return;
   }
 
   const btnRow = document.createElement("div");
   btnRow.className = "nope-btn-row";
 
   if (hasNope) {
-      const nopeBtn = document.createElement("button");
-      nopeBtn.textContent = action.isNoped ? "Counter-nope it!" : "Nope it!";
-      nopeBtn.className = "nope-btn";
-      nopeBtn.addEventListener("click", () => sendNope(game.id));
-      btnRow.appendChild(nopeBtn);
+    const nopeBtn = document.createElement("button");
+    nopeBtn.textContent = action.isNoped ? "Counter-nope it!" : "Nope it!";
+    nopeBtn.className = "nope-btn";
+    nopeBtn.addEventListener("click", () => sendNope(game.id));
+    btnRow.appendChild(nopeBtn);
   }
 
   const passBtn = document.createElement("button");
@@ -1012,7 +1043,7 @@ function renderDeadPopup(game) {
   let iAmEliminated = checkIfIHaveExploded(game);
 
   if (iAmEliminated === true) {
-    deadPopupElement.innerHTML=`
+    deadPopupElement.innerHTML = `
       <div class="game-over-overlay">
       <div class="game-over-modal">
       <h2>BOOM!</h2>
