@@ -10,10 +10,10 @@
 
 <body>
     <main>
-        <!-- <h1>Exploding Kittens</h1>
+        <!-- <h1>Exploding Kittens</h1> -->
         <div id="status">
             <h2>Game ongoing</h2>
-        </div> -->
+        </div> 
 
         <div id="opponents">
         </div>
@@ -32,6 +32,25 @@
         <div class="playerBar">
             <div id="myPlayer">
             </div>
+            <div class="playerChat">
+                <button id="openChat">
+                    <img src="/Frontend/images/game_img/chat_icon.png" alt="">
+                </button>
+                <div id="chatPanel" hidden>
+                    <div id="emojiContent">
+                        <img src="images/emojis/cool_emoji.png" class="emoji-opt">
+                        <img src="images/emojis/sad_emoji.png" class="emoji-opt">
+                        <img src="images/emojis/vengeful_emoji.png" class="emoji-opt">
+                        <img src="images/emojis/amused_emoji.png" class="emoji-opt">
+                    </div>
+                    <div id="textContent">
+                        <input type="text" id="chatInput" placeholder="Type a message..." />
+                        <button id="sendMessage">Send</button>
+                    </div>
+                </div>
+            </div>
+            <div id="futureCardsPanel">
+            </div>
             <div id="myCards">
             </div>
             <div id="nopePanel">
@@ -40,6 +59,8 @@
 
     </main>
     <script src="scripts/game.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+    <script src="scripts/chat.js"></script>
 </body>
 
 </html>

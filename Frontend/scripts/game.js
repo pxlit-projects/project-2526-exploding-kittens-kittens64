@@ -116,12 +116,12 @@ const CARD_ACTION_DESCRIPTION = {
 };
 
 function getActionDescription(cards) {
-  if (!cards || cards.length === 0) 
+  if (!cards || cards.length === 0)
     return "";
   const allCat = cards.every(c => CAT_CARDS.has(c));
-  if (allCat && cards.length === 3) 
+  if (allCat && cards.length === 3)
     return "3-cat combo  a specific card is stolen from the target player.";
-  if (allCat && cards.length === 2) 
+  if (allCat && cards.length === 2)
     return CARD_ACTION_DESCRIPTION["BeardCat"];
   const name = CARD_NAME[cards[0]];
   return CARD_ACTION_DESCRIPTION[name] ?? "";
@@ -142,7 +142,28 @@ function hasUnresolvedAction(game) {
   return !!(game.pendingAction && !game.pendingAction.isExecuted);
 }
 
-// Boot
+function checkIfIHaveExploded(game) {
+  let allPlayers = game.players;
+  if (!allPlayers) {
+    allPlayers = [];
+  }
+
+  let myPlayer = null;
+  for (let i = 0; i < allPlayers.length; i++) {
+    if (allPlayers[i].id === PLAYER_ID) {
+      myPlayer = allPlayers[i];
+    }
+  }
+  if (!myPlayer) {
+    return false;
+  }
+  if (myPlayer.eliminated === true) {
+    return true;
+  }
+  return false;
+}
+
+// startup Code 
 if (!TABLE_ID) {
   setStatus("Found no table ID.");
 } else {
@@ -243,7 +264,7 @@ function renderTableWaiting(table) {
   seated.forEach(p => {
     const div = document.createElement("div");
     div.className = "opponent";
-    div.innerHTML = `<h3>${p.name}</h3><p>Aanwezig ✅</p>`;
+    div.innerHTML = `<h3>${p.name}</h3><p>Aanwezig</p>`;
     el.appendChild(div);
   });
 }
@@ -256,8 +277,11 @@ function renderGame(game) {
   renderOpponents(game);
   renderActionPanel(game);
   renderNopePanel(game);
+  renderFutureCards(game);
   renderGiveCardPanel(game);
   renderMyPlayer(game);
+  renderDeadPopup(game);
+  renderSpectator(game);
 }
 
 function renderStatus(game) {
@@ -269,7 +293,7 @@ function renderStatus(game) {
   const current = (game.players ?? []).find(p => p.id === game.playerToPlayId);
   const isMyTurn = PLAYER_ID && game.playerToPlayId === PLAYER_ID;
   setStatus(isMyTurn
-    ? "⭐ It is your turn!"
+    ? " It is your turn!"
     : `Turn of ${current?.name ?? "…"}`
   );
 }
@@ -345,6 +369,7 @@ function renderMyCards(game) {
 
   if (!me) { el.innerHTML = "<p>Player not found.</p>"; return; }
   if (me.eliminated) { el.innerHTML = `<p class="eliminated-msg">You are eliminated 💀</p>`; return; }
+  if (me.eliminated) { el.innerHTML = `<p style="color:#c0392b;font-weight:bold;">YOU ARE ELIMINATED</p>`; return; }
 
   const hand = me.cardsInHand ?? [];
   if (hand.length === 0) { el.innerHTML = "<p>No cards in hand.</p>"; return; }
@@ -374,6 +399,7 @@ function renderOpponents(game) {
 
   const opponents = (game.players ?? []).filter(p => p.id !== PLAYER_ID);
   opponents.forEach(p => {
+    console.log(p.name, "eliminated:", p.eliminated);
     const count = p.cardsInHandCount ?? 0;
 
     let opponentTurn = "";
@@ -381,16 +407,34 @@ function renderOpponents(game) {
       opponentTurn = "opponentTurn";
     }
     // dit nog moet je toevogen eliminated ???
-    //   <h3>${p.name} ${p.eliminated ? "💀" : isActive ? "⭐" : ""}</h3>
+    //   <h3>${p.name} ${p.eliminated ? "" : isActive ? "": ""}</h3>
+
+    let avatarSrc = "";
+    let displayName = "";
+    let displayCount = 0;
+    let cardsBackHtml = "";
+
+    if (p.eliminated === true) {
+      avatarSrc = "images/avatars/avatar-dead.png";
+      displayName = `${p.name}`;
+      displayCount = 0;
+      cardsBackHtml = "";
+    } else {
+      avatarSrc = "images/avatars/avatar-1.png";
+      displayName = p.name;
+      displayCount = count;
+      cardsBackHtml = "<div id='opponents_card'> <img src='images/game_img/deck_img.png' alt='op_card'> </div>".repeat(Math.min(displayCount, 5));
+    }
+
 
     el.innerHTML += `
-      <div class="opponent ${opponentTurn}">
-          <h3 class="opponent_name">${p.name}</h3>
-        <img class="avatar_img" src="images/avatars/avatar-1.png" alt="opponent-img">
+      <div class="opponent ${opponentTurn} ${p.eliminated ? 'eliminated-opponent' : ''}" data-player-id="${p.id}">
+          <h3 class="opponent_name">${displayName}</h3>
+        <img class="avatar_img" src="${avatarSrc}" alt="opponent-img">
         <div class="opponents_cards">
-              <span class="card_counter">${count}</span>
-          ${"<div id='opponents_card'> <img src='images/game_img/deck_img.png' alt='op_card'> </div>".repeat(Math.min(count, 5))}
-        </div>
+              <span class="card_counter">${displayCount}</span>
+          ${cardsBackHtml}
+        <div class="message-container"></div>
       </div>
     `;
   });
@@ -399,19 +443,19 @@ function renderOpponents(game) {
 function renderMyPlayer(game) {
   const el = document.getElementById("myPlayer");
   if (!el) return;
- 
+
   const me = (game.players ?? []).find(p => p.id === PLAYER_ID);
   if (!me) return;
- 
+
   const myTurnClass = game.playerToPlayId === PLAYER_ID ? "opponentTurn" : "";
- 
+
   el.innerHTML = `
     <div class="opponent ${myTurnClass}">
       <h3 class="opponent_name">${me.name}</h3>
       <img class="avatar_img" src="images/avatars/avatar-1.png" alt="my-avatar">
     </div>
   `;
-} 
+}
 
 
 function renderActionPanel(game) {
@@ -419,8 +463,78 @@ function renderActionPanel(game) {
   if (!panel) {
     return
   }
+  // Save current selected values before clearing the panel
+  let savedTargetPlayer = null;
+  const selectPlayer = document.getElementById("targetPlayerSelect");
+  if (selectPlayer){
+    savedTargetPlayer = selectPlayer.value;
+  }
+
+  let savedTargetCard = null;
+  const selectCard = document.getElementById("targetCardSelect");
+  if  (selectCard){
+    savedTargetCard = selectCard.value;
+  };
+  let savedSlider = null;
+  const sliderEl = document.getElementById("ex-kit-slider");
+  if (sliderEl) {
+    savedSlider = sliderEl.value;
+  }
 
   panel.innerHTML = "";
+
+  let iAmEliminated = checkIfIHaveExploded(game);
+  if (iAmEliminated === true) {
+    panel.innerHTML = `<p>You are eliminated, spectator mode is ON, no action are allowed</p>`;
+    return;
+  }
+
+  // AUTO Defuse card if Exploding kitten is picked from card deck and place it back to choosed position
+  const action = game.pendingAction;
+
+  let MyTurn
+  if (game.playerToPlayId === PLAYER_ID) {
+    MyTurn = true
+  }
+
+  if (action && !action.isExecuted && action.cards.includes(Card.Defuse) && MyTurn) {
+
+    panel.innerHTML = `
+    <div>Defuse! Choose in which position you want to put the Exploding Kitten Card :</div>
+    <input type="range" id="ex-kit-slider" min="0" max="${game.drawPileCount}" value="0">
+    <div id="label">Positie: 0</div>
+    <button id="confirm-btn">Bevestigen</button>
+  `;
+  // Restore previously selected slider after refresh
+  if (savedSlider !== null) {
+    document.getElementById("ex-kit-slider").value = savedSlider;
+    document.getElementById("label").textContent = `Positie: ${savedSlider}`;
+  }
+
+    document.getElementById("ex-kit-slider").addEventListener("input", (input) => {
+      document.getElementById("label").textContent = `Positie: ${input.target.value}`;
+    });
+
+    document.getElementById("confirm-btn").addEventListener("click", async () => {
+      const slider = document.getElementById("ex-kit-slider");
+      const position = parseInt(slider.value);
+
+      await apiFetch(`/Games/${game.id}/play-action`, {
+        method: "POST",
+        body: JSON.stringify({
+          cards: [Card.Defuse],
+          targetCard: Card.ExplodingKitten,
+          drawPileIndex: position
+        })
+      });
+
+      const update = await apiFetch(`/Games/${game.id}`);
+      currentGame = update;
+      renderGame(update);
+    });
+
+    return;
+  }
 
   const pendingAction = game.pendingAction;
 
@@ -433,22 +547,23 @@ function renderActionPanel(game) {
 
     let nopeStatus = "";
     if (pendingAction.isNoped) {
-      nopeStatus = `<span class="nope-badge nope-active">⛔ NOPED — action is cancelled</span>`;
+      nopeStatus = `<span class="nope-badge nope-active">NOPED, action is cancelled</span>`;
     } else if ((pendingAction.nopeCount ?? 0) > 0 && !pendingAction.isNoped) {
-      nopeStatus = `<span class="nope-badge nope-restored">↩️ Counter-noped — action is ACTIVE again</span>`;
+      nopeStatus = `<span class="nope-badge nope-restored">Counter-noped, action is ACTIVE again</span>`;
     }
 
     const banner = document.createElement("div");
     banner.className = "pending-action-banner";
     banner.innerHTML = `
       <div class="pending-action-who">
-        🎴 <strong>${actor?.name ?? "Someone"}</strong> played
+        <strong>${actor?.name ?? "Someone"}</strong> played
         <strong>${cardNames}</strong>
       </div>
       <div class="pending-action-desc">${actionDesc}</div>
       ${nopeStatus}
     `;
     panel.appendChild(banner);
+    
     return;
   }
 
@@ -489,6 +604,10 @@ function renderActionPanel(game) {
         sel.appendChild(opt);
       });
     panel.appendChild(sel);
+  // Restore previously selected target player
+    if (savedTargetPlayer) {
+      sel.value = savedTargetPlayer;
+    }
   }
 
   const needsTargetCard = selectedCards.length === 3 && selectedCards.every(s => CAT_CARDS.has(s.cardInt));
@@ -509,7 +628,11 @@ function renderActionPanel(game) {
       opt.textContent = label;
       sel.appendChild(opt);
     });
-    panel.appendChild(sel); 
+    panel.appendChild(sel);
+    // Restore previously selected card
+    if (savedTargetCard){
+      sel.value = savedTargetCard;
+    }
   }
 
   const btn = document.createElement("button");
@@ -564,6 +687,27 @@ async function playSelectedCards(game) {
   if (errEl) errEl.textContent = "";
 
   const cards = selectedCards.map(s => s.cardInt);
+  // const cards = [];
+  // for (const selected of selectedCards) {
+  //   cards.push(selected.cardInt);
+  // }
+
+  // let allCat = true;
+  // for (const card of cards) {
+  //   if (!CAT_CARDS.has(card)) {
+  //     allCat = false;
+  //     break;
+  //   }
+  // }
+  const cards = selectedCards.map(s => s.cardInt);
+
+  let allSame = true;
+  for (const card of cards) {
+    if (card !== cards[0]) {
+      allSame = false;
+      break;
+    }
+  }
 
   const validationError = validateCardCombination(cards);
   if (validationError) {
@@ -615,6 +759,12 @@ function renderNopePanel(game) {
 
   panel.innerHTML = "";
 
+
+  let iAmEliminated = checkIfIHaveExploded(game);
+  if (iAmEliminated === true) {
+    return;
+  }
+
   const action = game.pendingAction;
   if (!action) return;
 
@@ -626,21 +776,20 @@ function renderNopePanel(game) {
 
   if (myDecision === undefined) return;
 
-  const isActor = action.playerId === PLAYER_ID;
-  const isNoped = action.isNoped;
-  const nopeCount = action.nopeCount ?? 0;
+  const me = (game.players ?? []).find(p => p.id === PLAYER_ID);
+  const hasNope = (me?.cardsInHand ?? []).includes(Card.Nope);
 
   const actorName = (game.players ?? []).find(p => p.id === action.playerId)?.name ?? "Someone";
   const cardNames = (action.cards ?? []).map(c => CARD_LABEL[CARD_NAME[c]] ?? "?").join(" + ");
 
-  // Describe the current state of the nope chain
+  const nopeCount = action.nopeCount ?? 0;
   let chainMsg = "";
   if (nopeCount === 0) {
     chainMsg = "Pending — waiting for players to decide.";
-  } else if (isNoped) {
-    chainMsg = `⛔ Noped ${nopeCount}x — action is <strong>cancelled</strong>.`;
+  } else if (action.isNoped) {
+    chainMsg = `Noped ${nopeCount}x — action is <strong>cancelled</strong>.`;
   } else {
-    chainMsg = `↩️ Counter-noped ${nopeCount}x — original action is <strong>active again</strong>.`;
+    chainMsg = ` Counter-noped ${nopeCount}x — action is <strong>active again</strong>.`;
   }
 
   const info = document.createElement("div");
@@ -651,30 +800,42 @@ function renderNopePanel(game) {
   `;
   panel.appendChild(info);
 
+  const activePlayers = (game.players ?? []).filter(p => !p.eliminated);
+  const firstUndecided = activePlayers.find(p =>
+    action.playerNopeDecisions?.[p.id] === 0 // NotDecided = 0
+  );
+
+  const isMyTurn = firstUndecided?.id === PLAYER_ID;
+
   if (myDecision !== 0) {
     const decided = document.createElement("div");
     decided.className = "nope-decided";
-    decided.textContent = myDecision === 1 ? "You played Nope ⛔" : "You confirmed ✅";
+    decided.textContent = myDecision === 1 ? "You played Nope " : "You confirmed ";
     panel.appendChild(decided);
     return;
   }
 
-  const me = (game.players ?? []).find(p => p.id === PLAYER_ID);
-  const hasNope = (me?.cardsInHand ?? []).includes(Card.Nope);
+  if (!isMyTurn) {
+    const waiting = document.createElement("div");
+    waiting.className = "nope-decided";
+    waiting.textContent = `Waiting for ${firstUndecided?.name ?? "other players"} to decide…`;
+    panel.appendChild(waiting);
+    return;
+  }
 
   const btnRow = document.createElement("div");
   btnRow.className = "nope-btn-row";
 
-  if (!isActor && hasNope) {
+  if (hasNope) {
     const nopeBtn = document.createElement("button");
-    nopeBtn.textContent = isNoped ? "↩️ Counter-nope it!" : "⛔ Nope it!";
+    nopeBtn.textContent = action.isNoped ? "Counter-nope it!" : "Nope it!";
     nopeBtn.className = "nope-btn";
     nopeBtn.addEventListener("click", () => sendNope(game.id));
     btnRow.appendChild(nopeBtn);
   }
 
   const passBtn = document.createElement("button");
-  passBtn.textContent = isActor ? "✅ Proceed" : "✅ Let it pass";
+  passBtn.textContent = "Let it pass";
   passBtn.className = "nope-pass-btn";
   passBtn.addEventListener("click", () => sendConfirmNotNoping(game.id));
   btnRow.appendChild(passBtn);
@@ -704,6 +865,40 @@ async function sendConfirmNotNoping(gameId) {
   }
 }
 
+function renderFutureCards(game) {
+  const panel = document.getElementById("futureCardsPanel");
+  if (!panel) return;
+
+  panel.innerHTML = "";
+  const me = (game.players ?? []).find(p => p.id === PLAYER_ID);
+  const futureCards = me?.futureCards ?? [];
+
+  if (futureCards.length === 0) return;
+
+  const title = document.createElement("div");
+  title.style.cssText = "width:100%;font-weight:bold;margin-bottom:8px;";
+  title.textContent = "The next 3 cards are:";
+  panel.appendChild(title);
+
+  futureCards.forEach((cardInt, i) => {
+    const name = CARD_NAME[cardInt] ?? "?";
+    const wrapper = document.createElement("div");
+    wrapper.style.cssText = "display:flex;flex-direction:column;align-items:center;gap:4px;";
+
+    const label = document.createElement("div");
+    label.style.cssText = "font-size:11px;color:#4a3a1a;font-weight:bold;";
+    label.textContent = `#${i + 1}`;
+
+    const card = makeCardEl(name, i);
+    card.style.opacity = "1";
+    card.style.cursor = "default";
+
+    wrapper.appendChild(label);
+    wrapper.appendChild(card);
+    panel.appendChild(wrapper);
+  });
+}
+
 // Willem Beckers
 
 async function sendGiveCard(gameId, cardInt) {
@@ -721,6 +916,12 @@ async function sendGiveCard(gameId, cardInt) {
 }
 
 function renderGiveCardPanel(game) {
+
+  let iAmEliminated = checkIfIHaveExploded(game);
+  if (iAmEliminated === true) {
+    return;
+  }
+
   let panel = document.getElementById("giveCardPanel");
   if (!panel) {
     panel = document.createElement("div");
@@ -736,14 +937,14 @@ function renderGiveCardPanel(game) {
 
 
   const iAmTarget = action.targetPlayerId === PLAYER_ID;
-  const isFavor   = (action.cards ?? []).includes(Card.Favor);
-  const isNoped   = action.isNoped;
-  
+  const isFavor = (action.cards ?? []).includes(Card.Favor);
+  const isNoped = action.isNoped;
+
   if (!iAmTarget || !isFavor || isNoped) return;
 
   const actor = (game.players ?? []).find(p => p.id === action.playerId);
-  const me    = (game.players ?? []).find(p => p.id === PLAYER_ID);
-  const hand  = me?.cardsInHand ?? [];
+  const me = (game.players ?? []).find(p => p.id === PLAYER_ID);
+  const hand = me?.cardsInHand ?? [];
 
   const info = document.createElement("div");
   info.className = "give-card-info";
@@ -752,7 +953,7 @@ function renderGiveCardPanel(game) {
 
   hand.forEach((cardInt, i) => {
     const name = CARD_NAME[cardInt] ?? "?";
-    const div  = makeCardEl(name, i, false, true);
+    const div = makeCardEl(name, i, false, true);
     div.style.cursor = "pointer";
     div.addEventListener("click", () => sendGiveCard(game.id, cardInt));
     panel.appendChild(div);
@@ -802,22 +1003,68 @@ function setStatus(msg) {
   if (el) el.innerHTML = `<p>${msg}</p>`;
 }
 
+function renderSpectator(game) {
+  let spectatorBannerElement = document.getElementById("spectatorBanner");
+  if (!spectatorBannerElement) {
+    return;
+  }
+
+  spectatorBannerElement.innerHTML = "";
+
+  let iAmEliminated = checkIfIHaveExploded(game);
+
+  if (iAmEliminated === true) {
+    spectatorBannerElement.innerHTML = `
+      <div class="spectator-alert-banner">
+        <strong>SPECTATOR MODE ACTIVE:</strong> You have been eliminated, you can only spectate.
+      </div>
+    `;
+  }
+}
+
+function renderDeadPopup(game) {
+  let deadPopupElement = document.getElementById("deadPopup");
+  if (!deadPopupElement) {
+    return;
+  }
+
+  deadPopupElement.innerHTML = "";
+
+  let iAmEliminated = checkIfIHaveExploded(game);
+
+  if (iAmEliminated === true) {
+    deadPopupElement.innerHTML = `
+      <div class="game-over-overlay">
+      <div class="game-over-modal">
+      <h2>BOOM!</h2>
+      <p>You drew an Exploding Kitten and had no Defuse card!</p>
+      <p class="sub-text">You are now watching the other players...</p>
+      </div>
+      </div>
+    `;
+    deadPopupElement.style.display = "block";
+  } else {
+    deadPopupElement.style.display = "none";
+  }
+}
+
+
 async function drawCard() {
   if (!currentGame) return;
 
   try {
-  
-    await apiFetch(`/Games/${currentGame.id}/draw-card`, { 
-      method: "POST" 
+
+    await apiFetch(`/Games/${currentGame.id}/draw-card`, {
+      method: "POST"
     });
 
 
     const updated = await apiFetch(`/Games/${currentGame.id}`);
     currentGame = updated;
     renderGame(updated);
-  
+
   } catch (error) {
-    
+
     alert("Cannot draw card: " + error.message);
   }
 }

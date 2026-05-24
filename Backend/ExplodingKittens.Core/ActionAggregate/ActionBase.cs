@@ -21,7 +21,9 @@ internal abstract class ActionBase : IAction
 
     public IReadOnlyDictionary<Guid, NopeDecision> PlayerNopeDecisions => _playerNopeDecisions;
 
-    public bool IsNoped => _playerNopeDecisions.Values.Count(d => d == NopeDecision.Nope) % 2 == 1;
+    private int _nopeChainCount = 0;
+
+    public bool IsNoped => _nopeChainCount % 2 == 1;
 
     protected ActionBase(IGame game, Guid playerId, IReadOnlyList<Card> cards, bool canBeNoped, Card? targetCard = null, Guid? targetPlayerId = null, int? drawPileIndex = null)
     {
@@ -35,23 +37,31 @@ internal abstract class ActionBase : IAction
 
         foreach (var player in Game.Players)
         {
-            _playerNopeDecisions[player.Id] = player.Id == PlayerId ? NopeDecision.NotNoping : NopeDecision.NotDecided;
+            bool hasNope = player.Hand.Contains(Card.Nope);
+            _playerNopeDecisions[player.Id] = (player.Id == PlayerId || !hasNope) ? NopeDecision.NotNoping : NopeDecision.NotDecided;
         }
+        CheckAndExecute();
     }
 
     public void Nope(Guid nopingPlayerId)
     {
         if (IsExecuted) return;
 
-        var currentDecision = _playerNopeDecisions[nopingPlayerId];
-        _playerNopeDecisions[nopingPlayerId] = currentDecision == NopeDecision.Nope ? NopeDecision.NotNoping : NopeDecision.Nope;
+        _nopeChainCount++;
+        _playerNopeDecisions[nopingPlayerId] = NopeDecision.Nope;
 
-        foreach (var playerId in _playerNopeDecisions.Keys.Where(id => id != nopingPlayerId))
+        foreach (var player in Game.Players.Where(p => p.Id != nopingPlayerId))
         {
-            _playerNopeDecisions[playerId] = NopeDecision.NotDecided;
+            if (player.Hand.Contains(Card.Nope))
+            {
+                _playerNopeDecisions[player.Id] = NopeDecision.NotDecided;
+            }
+            else
+            {
+                _playerNopeDecisions[player.Id] = NopeDecision.NotNoping;
+            }
         }
-       
-     
+        CheckAndExecute();
     }
 
     public void ConfirmNotNoping(Guid notNopingPlayerId)
@@ -72,11 +82,8 @@ internal abstract class ActionBase : IAction
         {
             if (!IsNoped)
             {
-                // als action een taget card nodig heeft, wacht hij
                 if (Cards.Contains(Card.Favor) && !TargetCard.HasValue) return;
-                // NOTE: de lege return waarde dient om de methode te stoppen. (zoals break in python)
                 Execute();
-               
             }
             IsExecuted = true;
         }

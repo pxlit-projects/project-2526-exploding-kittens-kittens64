@@ -58,6 +58,6 @@ internal class ActionFactory : IActionFactory
             throw new InvalidOperationException("To create a 'Defuse' action, a draw pile index must be specified");
         }
 
-        return new DefuseAction(game, playerId, cards, drawPileIndex.Value);
+        return new DefuseAction(game, playerId, cards, drawPileIndex);
     }
 }
