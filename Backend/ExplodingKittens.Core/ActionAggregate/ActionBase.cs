@@ -35,13 +35,23 @@ internal abstract class ActionBase : IAction
         TargetPlayerId = targetPlayerId;
         DrawPileIndex = drawPileIndex;
 
-        foreach (var player in Game.Players)
+        foreach (var player in Game.Players.Where(p => !p.Eliminated))
         {
-            bool hasNope = player.Hand.Contains(Card.Nope);
-            _playerNopeDecisions[player.Id] = (player.Id == PlayerId || !hasNope) ? NopeDecision.NotNoping : NopeDecision.NotDecided;
+            if (player.Id == PlayerId)
+            {
+                _playerNopeDecisions[player.Id] = NopeDecision.NotNoping;
+            }
+            else if (player.Hand.Contains(Card.Nope))
+            {
+                _playerNopeDecisions[player.Id] = NopeDecision.NotDecided;
+            }
+            else
+            {
+                _playerNopeDecisions[player.Id] = NopeDecision.NotNoping;
+            }
         }
-        CheckAndExecute();
     }
+
 
     public void Nope(Guid nopingPlayerId)
     {
@@ -53,21 +63,20 @@ internal abstract class ActionBase : IAction
         foreach (var player in Game.Players.Where(p => p.Id != nopingPlayerId))
         {
             if (player.Hand.Contains(Card.Nope))
-            {
                 _playerNopeDecisions[player.Id] = NopeDecision.NotDecided;
-            }
             else
-            {
                 _playerNopeDecisions[player.Id] = NopeDecision.NotNoping;
-            }
         }
-        CheckAndExecute();
+
+        if (!Game.Players.First(p => p.Id == PlayerId).Hand.Contains(Card.Nope))
+        {
+            _playerNopeDecisions[PlayerId] = NopeDecision.NotNoping;
+        }
     }
 
     public void ConfirmNotNoping(Guid notNopingPlayerId)
     {
         if (IsExecuted) return;
-
         _playerNopeDecisions[notNopingPlayerId] = NopeDecision.NotNoping;
         CheckAndExecute();
     }
@@ -76,7 +85,7 @@ internal abstract class ActionBase : IAction
     {
         if (IsExecuted) return;
 
-        bool everyoneDecided = Game.Players.All(player => _playerNopeDecisions[player.Id] != NopeDecision.NotDecided);
+        bool everyoneDecided = Game.Players.Where(p => !p.Eliminated).All(player => _playerNopeDecisions[player.Id] != NopeDecision.NotDecided);
 
         if (everyoneDecided)
         {

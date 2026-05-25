@@ -13,12 +13,5 @@ internal class ShuffleAction : ActionBase
     protected override void Execute()
     {
         Game.DrawPile.Shuffle();
-        if (Game.PendingDraws <= 1)
-        {
-            Game.PendingDraws = 0;
-            Game.AdvanceTurn(); // BUG fix: wanneer een speler een shuffle card speelt
-                                // krijgt hij een extra turn, tenzij de andere speler nope kaart gebruikt
-        }
-       
     }
 }
