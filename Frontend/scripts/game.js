@@ -803,28 +803,33 @@ function renderNopePanel(game) {
       decided.textContent = "You played Nope";
       panel.appendChild(decided);
     } else if (myDecision === 2 && !isActor) {
-      const decided = document.createElement("div");
-      decided.className = "nope-decided";
-      decided.textContent = "You confirmed";
-      panel.appendChild(decided);
-    } else {
-      const waiting = document.createElement("div");
-      waiting.className = "nope-decided";
-      const waitingFor = iCanCounterNope ? null : firstUndecided;
-      waiting.textContent = waitingFor
-        ? `Waiting for ${waitingFor.name} to decide…`
-        : "Waiting for other players…";
-      panel.appendChild(waiting);
-
-      if (!hasNope && (myDecision !== 2 || isActor)) {
-        const passBtn = document.createElement("button");
-        passBtn.textContent = "Let it pass";
-        passBtn.className = "nope-pass-btn";
-        passBtn.addEventListener("click", () => sendConfirmNotNoping(game.id));
-        panel.appendChild(passBtn);
+      if (!hasNope) {
+        sendConfirmNotNoping(game.id);
+      } else {
+        const decided = document.createElement("div");
+        decided.className = "nope-decided";
+        decided.textContent = "You confirmed";
+        panel.appendChild(decided);
       }
+    } else {
+    const waiting = document.createElement("div");
+    waiting.className = "nope-decided";
+    const waitingFor = iCanCounterNope ? null : firstUndecided;
+    waiting.textContent = waitingFor
+      ? `Waiting for ${waitingFor.name} to decide…`
+      : "Waiting for other players…";
+    panel.appendChild(waiting);
+
+    const iStillNeedToDecide = myDecision === 0;
+    if (iStillNeedToDecide && !hasNope) {
+      const passBtn = document.createElement("button");
+      passBtn.textContent = "Let it pass";
+      passBtn.className = "nope-pass-btn";
+      passBtn.addEventListener("click", () => sendConfirmNotNoping(game.id));
+      panel.appendChild(passBtn);
     }
-    return;
+  }
+  return;
   }
 
   const btnRow = document.createElement("div");
