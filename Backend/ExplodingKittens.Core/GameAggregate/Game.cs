@@ -69,12 +69,10 @@ internal class Game : IGame
 
                 player.Hand.InsertCard(card);
                 PendingDraws--;
-                // new[] { Card.Defuse } maak array met een card omdat methode verwacht een array
                 _pendingAction = new DefuseAction(this, playerId, new[] { Card.Defuse }, null);
             }
             else
             {
-                // Player is eliminated (rip)
                player.Hand.InsertCard(card);
                (player as PlayerAggregate.PlayerBase)!.Eliminated = true;
 
@@ -112,35 +110,56 @@ internal class Game : IGame
 
         var player = GetPlayerById(playerId);
 
-        // Remove cards from hand
         foreach (var card in cards)
         {
-            // Note: tests currently don't setup hands before playing, so we skip the check for now
             player.Hand.PickSpecificCard(card);
             DiscardPile.Add(card);
         }
 
-        _pendingAction = null;
         _pendingAction = _actionFactory.Create(this, playerId, cards, targetPlayerId, targetCard, drawPileIndex);
 
-        // If the action cannot be noped, execute it immediately
         if (!_pendingAction.CanBeNoped)
         {
-            // The action itself should handle execution logic
-            _pendingAction.ConfirmNotNoping(playerId);
-            // We need to ensure everyone has a chance or just execute if it's immediate
-            // Actually, ActionBase.ConfirmNotNoping calls CheckAndExecute
             foreach (var p in Players)
-            {
-                if (p.Id != playerId) _pendingAction.ConfirmNotNoping(p.Id);
-            }
+                _pendingAction.ConfirmNotNoping(p.Id);
         }
     }
 
+    private void AutoConfirmPlayersWithoutNopeCards()
+    {
+        if (_pendingAction == null || _pendingAction.IsExecuted) return;
+
+        foreach (var p in Players)
+        {
+            if (_pendingAction.IsExecuted) break;
+            if (_pendingAction.PlayerNopeDecisions.TryGetValue(p.Id, out var decision)
+                && decision == NopeDecision.NotDecided
+                && !p.Hand.Contains(Card.Nope))
+            {
+                _pendingAction.ConfirmNotNoping(p.Id);
+            }
+        }
+    }
     public void ConfirmNotNopingPendingAction(Guid playerId)
     {
         if (_pendingAction == null) throw new InvalidOperationException("No pending action.");
         _pendingAction.ConfirmNotNoping(playerId);
+
+        if (_pendingAction.IsExecuted) return;
+
+        foreach (var p in Players)
+        {
+            if (_pendingAction.IsExecuted) break;
+            if (_pendingAction.PlayerNopeDecisions.TryGetValue(p.Id, out var decision)
+                && decision == NopeDecision.NotDecided
+                && !p.Hand.Contains(Card.Nope)
+                && p.Id != _pendingAction.PlayerId)
+            {
+                _pendingAction.ConfirmNotNoping(p.Id);
+            }
+        }
+        AutoConfirmPlayersWithoutNopeCards();
+
     }
 
     public void NopePendingAction(Guid playerId)
@@ -148,11 +167,27 @@ internal class Game : IGame
         if (_pendingAction == null) throw new InvalidOperationException("No pending action.");
 
         var player = GetPlayerById(playerId);
+        _pendingAction.Nope(playerId);
+
         var nopeCard = player.Hand.PickSpecificCard(Card.Nope);
         if (nopeCard == null) throw new InvalidOperationException("Player has no Nope card.");
 
         DiscardPile.Add(Card.Nope);
-        _pendingAction.Nope(playerId);
+
+        if (_pendingAction.IsExecuted) return;
+
+        foreach (var p in Players)
+        {
+            if (_pendingAction.IsExecuted) break;
+            if (_pendingAction.PlayerNopeDecisions.TryGetValue(p.Id, out var decision)
+                && decision == NopeDecision.NotDecided
+                && !p.Hand.Contains(Card.Nope)
+                && p.Id != _pendingAction.PlayerId)
+            {
+                _pendingAction.ConfirmNotNoping(p.Id);
+            }
+        }
+        AutoConfirmPlayersWithoutNopeCards();
     }
 
     public void SelectCardToGiveAsAFavor(Guid playerId, Card card)
@@ -168,7 +203,6 @@ internal class Game : IGame
     {
         if (PendingDraws > 0) throw new InvalidOperationException("Player still has pending draws.");
 
-        // Clear future cards for all players
         foreach (var player in _players)
         {
             player.FutureCards = new List<Card>();
