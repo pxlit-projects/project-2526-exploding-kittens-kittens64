@@ -111,3 +111,24 @@ a {
     color: black;
     text-align: center;
 }
+
+.team-btn {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  padding: 8px 14px;
+  background: #4a3a1a;
+  color: #fdf8ec;
+  border: 2px solid #2a1a00;
+  font-family: 'Permanent Marker', cursive;
+  font-size: 12px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  box-shadow: 3px 3px 0 #2a1a00;
+  text-decoration: none;
+}
+.team-btn:hover {
+  background: #2a1a00;
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 #2a1a00;
+}
