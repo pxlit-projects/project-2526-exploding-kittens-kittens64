@@ -369,7 +369,7 @@ function renderMyCards(game) {
 
   if (!me) { el.innerHTML = "<p>Player not found.</p>"; return; }
   if (me.eliminated) { el.innerHTML = `<p class="eliminated-msg">YOU ARE ELIMINATED</p>`; return; }
-  
+
   const hand = me.cardsInHand ?? [];
   if (hand.length === 0) { el.innerHTML = "<p>No cards in hand.</p>"; return; }
 
@@ -394,7 +394,9 @@ function renderMyCards(game) {
 function renderOpponents(game) {
   const el = document.getElementById("opponents");
   if (!el) return;
-  el.innerHTML = "";
+  if (!el.querySelector("[data-player-id]")) {
+    el.innerHTML = "";
+  }
 
   const opponents = (game.players ?? []).filter(p => p.id !== PLAYER_ID);
   opponents.forEach(p => {
@@ -425,8 +427,10 @@ function renderOpponents(game) {
       cardsBackHtml = "<div id='opponents_card'> <img src='images/game_img/deck_img.png' alt='op_card'> </div>".repeat(Math.min(displayCount, 5));
     }
 
+    let opponentExist = el.querySelector(`[data-player-id="${p.id}"]`);
 
-    el.innerHTML += `
+    if (!opponentExist) {
+      el.innerHTML += `
       <div class="opponent ${opponentTurn} ${p.eliminated ? 'eliminated-opponent' : ''}" data-player-id="${p.id}">
           <h3 class="opponent_name">${displayName}</h3>
         <img class="avatar_img" src="${avatarSrc}" alt="opponent-img">
@@ -436,6 +440,13 @@ function renderOpponents(game) {
         <div class="message-container"></div>
       </div>
     `;
+    } else {
+      opponentExist.className = `opponent ${opponentTurn} ${p.eliminated ? "eliminated-opponent" : ""}`;
+      const messageContainer = opponentExist.querySelector(".message-container");
+      opponentExist.querySelector(".opponents_cards").innerHTML = `<span class="card_counter">${displayCount}</span>${cardsBackHtml}`;
+      opponentExist.querySelector(".opponents_cards").appendChild(messageContainer);;
+    }
+
   });
 }
 
@@ -465,13 +476,13 @@ function renderActionPanel(game) {
   // Save current selected values before clearing the panel
   let savedTargetPlayer = null;
   const selectPlayer = document.getElementById("targetPlayerSelect");
-  if (selectPlayer){
+  if (selectPlayer) {
     savedTargetPlayer = selectPlayer.value;
   }
 
   let savedTargetCard = null;
   const selectCard = document.getElementById("targetCardSelect");
-  if  (selectCard){
+  if (selectCard) {
     savedTargetCard = selectCard.value;
   };
   let savedSlider = null;
@@ -504,11 +515,11 @@ function renderActionPanel(game) {
     <div id="label">Positie: 0</div>
     <button id="confirm-btn">Bevestigen</button>
   `;
-  // Restore previously selected slider after refresh
-  if (savedSlider !== null) {
-    document.getElementById("ex-kit-slider").value = savedSlider;
-    document.getElementById("label").textContent = `Positie: ${savedSlider}`;
-  }
+    // Restore previously selected slider after refresh
+    if (savedSlider !== null) {
+      document.getElementById("ex-kit-slider").value = savedSlider;
+      document.getElementById("label").textContent = `Positie: ${savedSlider}`;
+    }
 
     document.getElementById("ex-kit-slider").addEventListener("input", (input) => {
       document.getElementById("label").textContent = `Positie: ${input.target.value}`;
@@ -562,7 +573,7 @@ function renderActionPanel(game) {
       ${nopeStatus}
     `;
     panel.appendChild(banner);
-    
+
     return;
   }
 
@@ -603,7 +614,7 @@ function renderActionPanel(game) {
         sel.appendChild(opt);
       });
     panel.appendChild(sel);
-  // Restore previously selected target player
+    // Restore previously selected target player
     if (savedTargetPlayer) {
       sel.value = savedTargetPlayer;
     }
@@ -629,7 +640,7 @@ function renderActionPanel(game) {
     });
     panel.appendChild(sel);
     // Restore previously selected card
-    if (savedTargetCard){
+    if (savedTargetCard) {
       sel.value = savedTargetCard;
     }
   }
@@ -751,11 +762,11 @@ function renderNopePanel(game) {
   if (!action || action.isExecuted || action.canBeNoped === false) return;
 
   console.log("ACTION STATE:", JSON.stringify({
-  isExecuted: action?.isExecuted,
-  isNoped: action?.isNoped,
-  canBeNoped: action?.canBeNoped,
-  decisions: action?.playerNopeDecisions
-}));
+    isExecuted: action?.isExecuted,
+    isNoped: action?.isNoped,
+    canBeNoped: action?.canBeNoped,
+    decisions: action?.playerNopeDecisions
+  }));
 
   const myDecision = action.playerNopeDecisions?.[PLAYER_ID];
 
@@ -812,24 +823,24 @@ function renderNopePanel(game) {
         panel.appendChild(decided);
       }
     } else {
-    const waiting = document.createElement("div");
-    waiting.className = "nope-decided";
-    const waitingFor = iCanCounterNope ? null : firstUndecided;
-    waiting.textContent = waitingFor
-      ? `Waiting for ${waitingFor.name} to decide…`
-      : "Waiting for other players…";
-    panel.appendChild(waiting);
+      const waiting = document.createElement("div");
+      waiting.className = "nope-decided";
+      const waitingFor = iCanCounterNope ? null : firstUndecided;
+      waiting.textContent = waitingFor
+        ? `Waiting for ${waitingFor.name} to decide…`
+        : "Waiting for other players…";
+      panel.appendChild(waiting);
 
-    const iStillNeedToDecide = myDecision === 0;
-    if (iStillNeedToDecide && !hasNope) {
-      const passBtn = document.createElement("button");
-      passBtn.textContent = "Let it pass";
-      passBtn.className = "nope-pass-btn";
-      passBtn.addEventListener("click", () => sendConfirmNotNoping(game.id));
-      panel.appendChild(passBtn);
+      const iStillNeedToDecide = myDecision === 0;
+      if (iStillNeedToDecide && !hasNope) {
+        const passBtn = document.createElement("button");
+        passBtn.textContent = "Let it pass";
+        passBtn.className = "nope-pass-btn";
+        passBtn.addEventListener("click", () => sendConfirmNotNoping(game.id));
+        panel.appendChild(passBtn);
+      }
     }
-  }
-  return;
+    return;
   }
 
   const btnRow = document.createElement("div");
@@ -876,19 +887,19 @@ async function sendConfirmNotNoping(gameId) {
 
 function renderFutureCards(game) {
   const panel = document.getElementById("futureCardsPanel");
-
   if (!panel) return;
 
-    let iAmEliminated = checkIfIHaveExploded(game);
-    if (iAmEliminated === true) {
-        panel.style.display = 'none';
-        return;
-    }
+  let iAmEliminated = checkIfIHaveExploded(game);
+  if (iAmEliminated === true) {
+    panel.style.display = "none"
+    return;
+  }
   panel.innerHTML = "";
   const me = (game.players ?? []).find(p => p.id === PLAYER_ID);
   const futureCards = me?.futureCards ?? [];
 
   if (futureCards.length === 0) return;
+  panel.style.display = "flex"; 
 
   const title = document.createElement("div");
   title.style.cssText = "width:100%;font-weight:bold;margin-bottom:8px;";
@@ -939,14 +950,14 @@ function renderGiveCardPanel(game) {
     if (panel) panel.style.display = 'none';
     return;
   }
- 
+
   if (!panel) {
     panel = document.createElement("div");
     panel.id = "giveCardPanel";
     const nopePanel = document.getElementById("nopePanel");
     nopePanel?.parentNode?.insertBefore(panel, nopePanel.nextSibling);
   }
-
+  panel.style.display = 'none';
   panel.innerHTML = "";
 
   const action = game.pendingAction;
@@ -957,7 +968,11 @@ function renderGiveCardPanel(game) {
   const isFavor = (action.cards ?? []).includes(Card.Favor);
   const isNoped = action.isNoped;
 
-  if (!iAmTarget || !isFavor || isNoped) return;
+  if (!iAmTarget || !isFavor || isNoped){
+    panel.style.display = 'none';
+    return
+  }
+    panel.style.display = 'flex';
 
   const actor = (game.players ?? []).find(p => p.id === action.playerId);
   const me = (game.players ?? []).find(p => p.id === PLAYER_ID);

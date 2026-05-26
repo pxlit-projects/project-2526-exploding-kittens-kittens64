@@ -57,7 +57,7 @@ sendMessage.addEventListener("click", function () {
 
 connection.on("ReceiveMessage", function (playerId, message) {
     let showMessage = document.querySelector('[data-player-id="' + playerId + '"]')
-    // showMessage.querySelector(".message-container") zoekt gebruiker welke heeft bericht gestuurd
+    // showMessage.querySelector(".message-container") zoekt welke gebruiker heeft bericht gestuurd
     let container = showMessage.querySelector(".message-container")
     let span = document.createElement("span")
     span.textContent = message
